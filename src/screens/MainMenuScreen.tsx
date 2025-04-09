@@ -1,14 +1,18 @@
 import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 
+import { RootStackParamList } from '../navigation/AppNavigator';
+
+type MainMenuNavigationProp = StackNavigationProp<RootStackParamList, 'MainMenu'>;
+
 const MainMenuScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<MainMenuNavigationProp>();
   
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Chess Clock</Text>
-      
       <View style={styles.buttonContainer}>
         <Button 
           title="Play" 

@@ -8,7 +8,15 @@ import GameScreen from '../screens/GameScreen';
 import HelpScreen from '../screens/HelpScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 
-const Stack = createStackNavigator();
+export type RootStackParamList = {
+  MainMenu: undefined;
+  TimerSelection: undefined;
+  Game: undefined;
+  Help: undefined;
+  Settings: undefined;
+};
+
+const Stack = createStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
   return (
@@ -17,12 +25,12 @@ export default function AppNavigator() {
         <Stack.Screen 
           name="MainMenu" 
           component={MainMenuScreen} 
-          options={{ title: 'Chess Clock' }}
+          options={{ title: 'Relógio' }}
         />
         <Stack.Screen 
           name="TimerSelection" 
           component={TimerSelectionScreen} 
-          options={{ title: 'Choose Timer' }}
+          options={{ title: 'Seleção de relógio' }}
         />
         <Stack.Screen 
           name="Game" 
@@ -32,12 +40,12 @@ export default function AppNavigator() {
         <Stack.Screen 
           name="Help" 
           component={HelpScreen} 
-          options={{ title: 'Help' }}
+          options={{ title: 'Ajuda' }}
         />
         <Stack.Screen 
           name="Settings" 
           component={SettingsScreen} 
-          options={{ title: 'Settings' }}
+          options={{ title: 'Configurações' }}
         />
       </Stack.Navigator>
     </NavigationContainer>
