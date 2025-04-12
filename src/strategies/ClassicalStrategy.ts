@@ -13,18 +13,16 @@ export class ClassicalStrategy implements TimerStrategy {
     this.reset();
   }
   
-  tick(playerId: number): void {
-    if (playerId === this.currentPlayer && this.times[playerId] > 0) {
-      this.times[playerId] -= 100; // Decrease by 100ms
-    }
+  getRemainingTime(playerId: number): number {
+    return this.times[playerId];
+  }
+  
+  setRemainingTime(playerId: number, timeMs: number): void {
+    this.times[playerId] = timeMs;
   }
   
   switchPlayer(): void {
     this.currentPlayer = 1 - this.currentPlayer; // Toggle between 0 and 1
-  }
-  
-  getRemainingTime(playerId: number): number {
-    return this.times[playerId];
   }
   
   isGameOver(): boolean {

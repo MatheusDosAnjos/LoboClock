@@ -4,14 +4,17 @@ import { TimerStrategyFactory, TimerType } from '../factories/TimerStrategyFacto
 export class GameController {
   private strategy: TimerStrategy;
   private isRunning: boolean = false;
+  private activePlayer: number = 0;
   private startTimestamp: number = 0;
   private animationFrameId: number | null = null;
   private gameOverCallback: () => void = () => {};
   private timeUpdateCallback: (times: number[]) => void = () => {};
-  private activePlayer: number = 0;
+  private moveCountCallback: (moves: number[]) => void = () => {};
+  private moveCount: number[] = [0, 0]; // Track moves for each player
   
   constructor(strategyType: TimerType = TimerType.CLASSICAL, config?: Record<string, any>) {
     this.strategy = TimerStrategyFactory.createStrategy(strategyType, config);
+    this.reset();
   }
   
   start(): void {
@@ -39,13 +42,19 @@ export class GameController {
     this.pause();
     this.strategy.reset();
     this.activePlayer = 0;
+    this.moveCount = [0, 0];
     this.notifyTimeUpdate();
+    this.notifyMoveCount();
   }
   
   switchPlayer(): void {
     if (this.isRunning) {
       // Calculate and update the current player's time before switching
       this.updatePlayerTime();
+      
+      // Increment move count for the current player
+      this.moveCount[this.activePlayer]++;
+      this.notifyMoveCount();
       
       // Switch player in the strategy
       this.strategy.switchPlayer();
@@ -104,12 +113,24 @@ export class GameController {
     ]);
   }
   
+  private notifyMoveCount(): void {
+    this.moveCountCallback(this.moveCount);
+  }
+  
   getCurrentPlayer(): number {
     return this.activePlayer;
   }
   
+  getMoveCount(): number[] {
+    return [...this.moveCount]; // Return a copy to prevent external modification
+  }
+  
   onTimeUpdate(callback: (times: number[]) => void): void {
     this.timeUpdateCallback = callback;
+  }
+  
+  onMoveCountUpdate(callback: (moves: number[]) => void): void {
+    this.moveCountCallback = callback;
   }
   
   onGameOver(callback: () => void): void {

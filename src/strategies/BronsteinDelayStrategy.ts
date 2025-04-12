@@ -5,10 +5,11 @@ export class BronsteinDelayStrategy implements TimerStrategy {
   description = "Adds back the time used for a move, up to the maximum delay";
   
   private times: number[] = [0, 0]; // Player 1 and 2 remaining time (ms)
+  private moveStartTimes: number[] = [0, 0]; // Time at start of player's move
   private currentPlayer: number = 0;
   initialTimeMs: number;
   private delayMs: number;
-  private moveStartTime: number = 0;
+  private isFirstUpdate: boolean[] = [true, true]; // Track first update for each player
   
   constructor(initialTimeMinutes: number = 5, delaySeconds: number = 3) {
     this.initialTimeMs = initialTimeMinutes * 60 * 1000;
@@ -16,27 +17,38 @@ export class BronsteinDelayStrategy implements TimerStrategy {
     this.reset();
   }
   
-  tick(playerId: number): void {
-    if (playerId === this.currentPlayer && this.times[playerId] > 0) {
-      this.times[playerId] -= 100; // Decrease by 100ms
+  getRemainingTime(playerId: number): number {
+    return this.times[playerId];
+  }
+  
+  setRemainingTime(playerId: number, timeMs: number): void {
+    // Only track move start time for the active player
+    if (playerId === this.currentPlayer && this.isFirstUpdate[playerId]) {
+      // This is the first update for this player after a switch
+      this.moveStartTimes[playerId] = timeMs;
+      this.isFirstUpdate[playerId] = false;
     }
+    
+    // Always update the current time
+    this.times[playerId] = timeMs;
   }
   
   switchPlayer(): void {
     // Calculate time spent on the move
-    const timeSpent = this.moveStartTime - this.times[this.currentPlayer];
+    const previousPlayer = this.currentPlayer;
+    const timeSpent = this.moveStartTimes[previousPlayer] - this.times[previousPlayer];
     
-    // Add back delay (limited to the actual time spent or max delay)
-    const timeToAdd = Math.min(timeSpent, this.delayMs);
-    this.times[this.currentPlayer] += timeToAdd;
+    // Add back delay (limited to actual time spent or max delay)
+    if (timeSpent > 0) {
+      const timeToAdd = Math.min(timeSpent, this.delayMs);
+      this.times[previousPlayer] += timeToAdd;
+    }
     
-    // Switch player and store the new starting time
+    // Switch to the next player
     this.currentPlayer = 1 - this.currentPlayer;
-    this.moveStartTime = this.times[this.currentPlayer];
-  }
-  
-  getRemainingTime(playerId: number): number {
-    return this.times[playerId];
+    
+    // Reset the first update flag for the new current player
+    this.isFirstUpdate[this.currentPlayer] = true;
   }
   
   isGameOver(): boolean {
@@ -45,8 +57,9 @@ export class BronsteinDelayStrategy implements TimerStrategy {
   
   reset(): void {
     this.times = [this.initialTimeMs, this.initialTimeMs];
+    this.moveStartTimes = [this.initialTimeMs, this.initialTimeMs];
+    this.isFirstUpdate = [true, true];
     this.currentPlayer = 0;
-    this.moveStartTime = this.initialTimeMs;
   }
   
   getConfigParams(): TimerConfigParam[] {

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -8,7 +8,8 @@ import {
   Animated, 
   LayoutAnimation, 
   Platform,
-  UIManager 
+  UIManager,
+  InteractionManager
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { TimerStrategyFactory, TimerType } from '../factories/TimerStrategyFactory';
@@ -27,6 +28,8 @@ const TimerSelectionScreen = () => {
   const [selectedStrategy, setSelectedStrategy] = useState<TimerType | null>(null);
   const [config, setConfig] = useState<Record<string, any>>({});
   const [isConfigValid, setIsConfigValid] = useState<boolean>(false);
+  const scrollViewRef = useRef(null);
+  const itemMeasurements = useRef({});
   
   const handleStrategySelect = (type: TimerType) => {
     // Configure animation
@@ -48,7 +51,24 @@ const TimerSelectionScreen = () => {
       initialConfig[param.name] = param.defaultValue;
     });
     setConfig(initialConfig);
-    setIsConfigValid(true);
+    setIsConfigValid(true); // Default values are valid
+    
+    // Wait for animations to complete before scrolling
+    InteractionManager.runAfterInteractions(() => {
+      // Use a setTimeout to ensure the expanded component has been fully rendered
+      setTimeout(() => {
+        if (scrollViewRef.current && itemMeasurements.current[type]) {
+          scrollViewRef.current.scrollTo({
+            y: itemMeasurements.current[type],
+            animated: true
+          });
+        }
+      }, 300);
+    });
+  };
+  
+  const handleItemLayout = (type, y) => {
+    itemMeasurements.current[type] = y;
   };
   
   const handleConfigChange = (name: string, value: any) => {
@@ -76,12 +96,19 @@ const TimerSelectionScreen = () => {
       config: finalConfig
     });
   };
-  
+
   const renderStrategyItem = (strategy) => {
     const isSelected = selectedStrategy === strategy.type;
     
     return (
-      <View key={strategy.type} style={styles.strategyItemContainer}>
+      <View 
+        key={strategy.type} 
+        style={styles.strategyItemContainer}
+        onLayout={(event) => {
+          const { y } = event.nativeEvent.layout;
+          handleItemLayout(strategy.type, y);
+        }}
+      >
         <TouchableOpacity 
           style={[
             styles.strategyItem,
@@ -95,7 +122,6 @@ const TimerSelectionScreen = () => {
         
         {isSelected && (
           <Animated.View style={styles.configContainer}>
-            <Text style={styles.configTitle}>Configure Timer</Text>
             <TimerConfigForm 
               strategy={TimerStrategyFactory.createStrategy(strategy.type)}
               config={config}
@@ -111,26 +137,26 @@ const TimerSelectionScreen = () => {
               onPress={handleStartGame}
               disabled={!isConfigValid}
             >
-              <Text style={styles.startButtonText}>Start Game</Text>
+              <Text style={styles.startButtonText}>Começar</Text>
             </TouchableOpacity>
           </Animated.View>
         )}
       </View>
     );
   };
-  
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Select Timer Type</Text>
+      <Text style={styles.title}>Selecione o tipo de timer</Text>
       
       <ScrollView 
+        ref={scrollViewRef}
         style={styles.strategyList}
         showsVerticalScrollIndicator={true}
       >
         {strategies.map(renderStrategyItem)}
         
-        {/* Add extra space at the bottom for better scrolling */}
-        <View style={{ height: 40 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
     </View>
   );
@@ -193,10 +219,9 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
-    marginTop: 16,
   },
   startButtonDisabled: {
-    backgroundColor: '#a0cfff',
+    backgroundColor: '#a0cfff', // lighter blue
     opacity: 0.7,
   },
   startButtonText: {

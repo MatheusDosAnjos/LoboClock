@@ -7,25 +7,36 @@ export class HourglassStrategy implements TimerStrategy {
   private times: number[] = [0, 0]; // Player 1 and 2 remaining time (ms)
   private currentPlayer: number = 0;
   initialTimeMs: number;
+  private lastUpdateTime: number = 0;
   
   constructor(initialTimeMinutes: number = 3) {
     this.initialTimeMs = initialTimeMinutes * 60 * 1000;
     this.reset();
   }
   
-  tick(playerId: number): void {
-    if (playerId === this.currentPlayer && this.times[playerId] > 0) {
-      this.times[playerId] -= 100; // Decrease by 100ms
-      this.times[1 - playerId] += 100; // Increase opponent time by 100ms
+  getRemainingTime(playerId: number): number {
+    return this.times[playerId];
+  }
+  
+  setRemainingTime(playerId: number, timeMs: number): void {
+    // Track how much time was reduced
+    const timeDiff = this.times[playerId] - timeMs;
+    
+    if (timeDiff > 0 && playerId === this.currentPlayer) {
+      // Decrease active player's time
+      this.times[playerId] = timeMs;
+      
+      // Increase opponent's time by the same amount
+      const opponentId = 1 - playerId;
+      this.times[opponentId] += timeDiff;
+    } else {
+      // Direct set (for reset or initialization)
+      this.times[playerId] = timeMs;
     }
   }
   
   switchPlayer(): void {
     this.currentPlayer = 1 - this.currentPlayer; // Toggle between 0 and 1
-  }
-  
-  getRemainingTime(playerId: number): number {
-    return this.times[playerId];
   }
   
   isGameOver(): boolean {
