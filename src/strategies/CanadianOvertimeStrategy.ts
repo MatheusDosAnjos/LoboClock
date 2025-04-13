@@ -130,17 +130,6 @@ export class CanadianOvertimeStrategy implements TimerStrategy {
     ];
   }
 
-  setConfigParam(paramName: string, value: any): void {
-    if (paramName === 'initialTimeMinutes') {
-      this.initialTimeMs = value * 60 * 1000;
-    } else if (paramName === 'overtimeMinutes') {
-      this.overtimeMs = value * 60 * 1000;
-    } else if (paramName === 'movesRequired') {
-      this.movesRequired = value;
-    }
-    this.reset();
-  }
-
   // Additional methods to provide UI feedback
   getOvertimeStatus(playerId: number): {
     inOvertime: boolean;

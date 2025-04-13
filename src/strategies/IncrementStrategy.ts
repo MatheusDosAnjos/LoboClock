@@ -59,13 +59,4 @@ export class IncrementStrategy implements TimerStrategy {
       },
     ];
   }
-
-  setConfigParam(paramName: string, value: any): void {
-    if (paramName === 'initialTimeMinutes') {
-      this.initialTimeMs = value * 60 * 1000;
-      this.reset();
-    } else if (paramName === 'incrementSeconds') {
-      this.incrementMs = value * 1000;
-    }
-  }
 }

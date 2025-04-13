@@ -130,17 +130,6 @@ export class ByoYomiStrategy implements TimerStrategy {
     ];
   }
 
-  setConfigParam(paramName: string, value: any): void {
-    if (paramName === 'initialTimeMinutes') {
-      this.initialTimeMs = value * 60 * 1000;
-    } else if (paramName === 'byoYomiPeriodSeconds') {
-      this.byoYomiPeriodMs = value * 1000;
-    } else if (paramName === 'numPeriods') {
-      this.numPeriods = value;
-    }
-    this.reset();
-  }
-
   // Additional methods to provide UI feedback
   getByoYomiStatus(playerId: number): {
     inByoYomi: boolean;

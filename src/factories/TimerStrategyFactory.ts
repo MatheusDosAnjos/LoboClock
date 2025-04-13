@@ -13,7 +13,6 @@ export enum TimerType {
   HOURGLASS = 'hourglass',
   BYO_YOMI = 'byoYomi',
   CANADIAN = 'canadian',
-  CUSTOM = 'custom',
 }
 
 export class TimerStrategyFactory {
@@ -54,21 +53,9 @@ export class TimerStrategyFactory {
           config?.movesRequired,
         );
 
-      case TimerType.CUSTOM:
-        // This would need to be handled specially depending on the selected base type
-        return this.createCustomStrategy(config);
-
       default:
         return new ClassicalStrategy();
     }
-  }
-
-  private static createCustomStrategy(
-    config?: Record<string, any>,
-  ): TimerStrategy {
-    // Example implementation that creates a strategy based on the baseType
-    const baseType = config?.baseType || TimerType.CLASSICAL;
-    return this.createStrategy(baseType, config);
   }
 
   static getAllStrategies(): {
@@ -106,11 +93,6 @@ export class TimerStrategyFactory {
         type: TimerType.CANADIAN,
         name: 'Canadian Overtime',
         description: 'Complete specified moves within overtime period',
-      },
-      {
-        type: TimerType.CUSTOM,
-        name: 'Custom',
-        description: 'Customize your own timer settings',
       },
     ];
   }

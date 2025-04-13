@@ -46,11 +46,4 @@ export class ClassicalStrategy implements TimerStrategy {
       },
     ];
   }
-
-  setConfigParam(paramName: string, value: any): void {
-    if (paramName === 'initialTimeMinutes') {
-      this.initialTimeMs = value * 60 * 1000;
-      this.reset();
-    }
-  }
 }

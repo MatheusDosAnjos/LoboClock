@@ -12,7 +12,6 @@ export interface TimerStrategy {
 
   // Configuration methods
   getConfigParams(): TimerConfigParam[];
-  setConfigParam(paramName: string, value: any): void;
 }
 
 export interface TimerConfigParam {
