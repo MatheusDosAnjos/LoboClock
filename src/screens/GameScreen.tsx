@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  StyleSheet, 
-  Alert, 
-  Animated, 
-  Dimensions 
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Animated,
+  Dimensions,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { GameController } from '../controllers/GameController';
@@ -19,8 +19,10 @@ const GameScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const { strategyType, config } = route.params;
-  
-  const [gameController] = useState(() => new GameController(strategyType, config));
+
+  const [gameController] = useState(
+    () => new GameController(strategyType, config),
+  );
   const [times, setTimes] = useState<number[]>([0, 0]);
   const [moveCounts, setMoveCounts] = useState<number[]>([0, 0]);
   const [currentPlayer, setCurrentPlayer] = useState(0);
@@ -31,29 +33,29 @@ const GameScreen = () => {
   // States for special strategies
   const [byoYomiStatus, setByoYomiStatus] = useState([
     { inByoYomi: false, periodsRemaining: 0 },
-    { inByoYomi: false, periodsRemaining: 0 }
+    { inByoYomi: false, periodsRemaining: 0 },
   ]);
   const [canadianStatus, setCanadianStatus] = useState([
     { inOvertime: false, movesMade: 0, movesRequired: 0 },
-    { inOvertime: false, movesMade: 0, movesRequired: 0 }
+    { inOvertime: false, movesMade: 0, movesRequired: 0 },
   ]);
 
   // Initialize timers and listeners
   useEffect(() => {
     const initialTimes = [
       gameController.getCurrentStrategy().getRemainingTime(0),
-      gameController.getCurrentStrategy().getRemainingTime(1)
+      gameController.getCurrentStrategy().getRemainingTime(1),
     ];
     setTimes(initialTimes);
     setMoveCounts(gameController.getMoveCount());
     updateSpecialStatuses();
 
-    gameController.onTimeUpdate((newTimes) => {
+    gameController.onTimeUpdate(newTimes => {
       setTimes(newTimes);
       updateSpecialStatuses();
     });
 
-    gameController.onMoveCountUpdate((newMoves) => {
+    gameController.onMoveCountUpdate(newMoves => {
       setMoveCounts(newMoves);
     });
 
@@ -61,14 +63,10 @@ const GameScreen = () => {
       const winner = times[0] <= 0 ? 'Player 2' : 'Player 1';
       const winnerMoves = times[0] <= 0 ? moveCounts[1] : moveCounts[0];
 
-      Alert.alert(
-        'Game Over',
-        `${winner} wins!\nMoves made: ${winnerMoves}`,
-        [
-          { text: 'New Game', onPress: handleReset },
-          { text: 'Main Menu', onPress: () => navigation.navigate('MainMenu') }
-        ]
-      );
+      Alert.alert('Game Over', `${winner} wins!\nMoves made: ${winnerMoves}`, [
+        { text: 'New Game', onPress: handleReset },
+        { text: 'Main Menu', onPress: () => navigation.navigate('MainMenu') },
+      ]);
     });
 
     return () => {
@@ -80,22 +78,22 @@ const GameScreen = () => {
   const updateSpecialStatuses = () => {
     const strategy = gameController.getCurrentStrategy();
 
-    if (strategy.name === "Byo-Yomi") {
+    if (strategy.name === 'Byo-Yomi') {
       const byoYomiStrategy = strategy as any;
       if (byoYomiStrategy.getByoYomiStatus) {
         setByoYomiStatus([
           byoYomiStrategy.getByoYomiStatus(0),
-          byoYomiStrategy.getByoYomiStatus(1)
+          byoYomiStrategy.getByoYomiStatus(1),
         ]);
       }
     }
 
-    if (strategy.name === "Canadian Overtime") {
+    if (strategy.name === 'Canadian Overtime') {
       const canadianStrategy = strategy as any;
       if (canadianStrategy.getOvertimeStatus) {
         setCanadianStatus([
           canadianStrategy.getOvertimeStatus(0),
-          canadianStrategy.getOvertimeStatus(1)
+          canadianStrategy.getOvertimeStatus(1),
         ]);
       }
     }
@@ -106,7 +104,7 @@ const GameScreen = () => {
     Animated.timing(animValue, {
       toValue: currentPlayer,
       duration: 300,
-      useNativeDriver: false
+      useNativeDriver: false,
     }).start();
   }, [currentPlayer]);
 
@@ -147,7 +145,7 @@ const GameScreen = () => {
     gameController.reset();
     setTimes([
       gameController.getCurrentStrategy().getRemainingTime(0),
-      gameController.getCurrentStrategy().getRemainingTime(1)
+      gameController.getCurrentStrategy().getRemainingTime(1),
     ]);
     setMoveCounts(gameController.getMoveCount());
     updateSpecialStatuses();
@@ -157,23 +155,24 @@ const GameScreen = () => {
     setGameStarted(false);
   };
 
-  const renderSpecialStatus = (player) => {
+  const renderSpecialStatus = player => {
     const strategy = gameController.getCurrentStrategy();
 
-    if (strategy.name === "Byo-Yomi") {
+    if (strategy.name === 'Byo-Yomi') {
       const status = byoYomiStatus[player];
       if (status.inByoYomi) {
         return (
           <View style={styles.statusContainer}>
             <Text style={styles.statusText}>
-              Byo-Yomi: {status.periodsRemaining} period{status.periodsRemaining !== 1 ? 's' : ''} left
+              Byo-Yomi: {status.periodsRemaining} period
+              {status.periodsRemaining !== 1 ? 's' : ''} left
             </Text>
           </View>
         );
       }
     }
 
-    if (strategy.name === "Canadian Overtime") {
+    if (strategy.name === 'Canadian Overtime') {
       const status = canadianStatus[player];
       if (status.inOvertime) {
         return (
@@ -189,20 +188,18 @@ const GameScreen = () => {
     return null;
   };
 
-  const activeIndicator = (
-    gameStarted && (
-      <Animated.View 
-        style={[
-          styles.activeIndicator, 
-          {
-            top: animValue.interpolate({
-              inputRange: [0, 1],
-              outputRange: [height / 2, 0]
-            }),
-          }
-        ]} 
-      />
-    )
+  const activeIndicator = gameStarted && (
+    <Animated.View
+      style={[
+        styles.activeIndicator,
+        {
+          top: animValue.interpolate({
+            inputRange: [0, 1],
+            outputRange: [height / 2, 0],
+          }),
+        },
+      ]}
+    />
   );
 
   return (
@@ -210,11 +207,11 @@ const GameScreen = () => {
       {activeIndicator}
 
       {/* Player 2 (Top) */}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[
-          styles.playerClock, 
+          styles.playerClock,
           styles.player2Clock,
-          currentPlayer === 1 && !isPaused && styles.activeClock
+          currentPlayer === 1 && !isPaused && styles.activeClock,
         ]}
         onPress={() => handlePlayerPress(1)}
         activeOpacity={0.8}
@@ -229,14 +226,17 @@ const GameScreen = () => {
 
       {/* Controls */}
       <View style={styles.controls}>
-        <TouchableOpacity style={styles.controlButton} onPress={handlePauseToggle}>
+        <TouchableOpacity
+          style={styles.controlButton}
+          onPress={handlePauseToggle}
+        >
           <Text style={styles.controlText}>{isPaused ? 'Start' : 'Pause'}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.controlButton} onPress={handleReset}>
           <Text style={styles.controlText}>Reset</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.controlButton} 
+        <TouchableOpacity
+          style={styles.controlButton}
           onPress={() => navigation.navigate('TimerSelection')}
         >
           <Text style={styles.controlText}>Change Timer</Text>
@@ -244,11 +244,11 @@ const GameScreen = () => {
       </View>
 
       {/* Player 1 (Bottom) */}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[
-          styles.playerClock, 
+          styles.playerClock,
           styles.player1Clock,
-          currentPlayer === 0 && !isPaused && styles.activeClock
+          currentPlayer === 0 && !isPaused && styles.activeClock,
         ]}
         onPress={() => handlePlayerPress(0)}
         activeOpacity={0.8}

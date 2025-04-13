@@ -22,29 +22,29 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="MainMenu">
-        <Stack.Screen 
-          name="MainMenu" 
-          component={MainMenuScreen} 
+        <Stack.Screen
+          name="MainMenu"
+          component={MainMenuScreen}
           options={{ title: 'Relógio' }}
         />
-        <Stack.Screen 
-          name="TimerSelection" 
-          component={TimerSelectionScreen} 
+        <Stack.Screen
+          name="TimerSelection"
+          component={TimerSelectionScreen}
           options={{ title: 'Seleção de relógio' }}
         />
-        <Stack.Screen 
-          name="Game" 
-          component={GameScreen} 
+        <Stack.Screen
+          name="Game"
+          component={GameScreen}
           options={{ headerShown: false }}
         />
-        <Stack.Screen 
-          name="Help" 
-          component={HelpScreen} 
+        <Stack.Screen
+          name="Help"
+          component={HelpScreen}
           options={{ title: 'Ajuda' }}
         />
-        <Stack.Screen 
-          name="Settings" 
-          component={SettingsScreen} 
+        <Stack.Screen
+          name="Settings"
+          component={SettingsScreen}
           options={{ title: 'Configurações' }}
         />
       </Stack.Navigator>

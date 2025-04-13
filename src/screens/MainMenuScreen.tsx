@@ -5,28 +5,28 @@ import { useNavigation } from '@react-navigation/native';
 
 import { RootStackParamList } from '../navigation/AppNavigator';
 
-type MainMenuNavigationProp = StackNavigationProp<RootStackParamList, 'MainMenu'>;
+type MainMenuNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'MainMenu'
+>;
 
 const MainMenuScreen = () => {
   const navigation = useNavigation<MainMenuNavigationProp>();
-  
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Chess Clock</Text>
       <View style={styles.buttonContainer}>
-        <Button 
-          title="Play" 
-          onPress={() => navigation.navigate('TimerSelection')} 
+        <Button
+          title="Play"
+          onPress={() => navigation.navigate('TimerSelection')}
         />
-        
-        <Button 
-          title="Help" 
-          onPress={() => navigation.navigate('Help')} 
-        />
-        
-        <Button 
-          title="Settings" 
-          onPress={() => navigation.navigate('Settings')} 
+
+        <Button title="Help" onPress={() => navigation.navigate('Help')} />
+
+        <Button
+          title="Settings"
+          onPress={() => navigation.navigate('Settings')}
         />
       </View>
     </View>
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     width: '80%',
     height: 200,
     justifyContent: 'space-between',
-  }
+  },
 });
 
 export default MainMenuScreen;

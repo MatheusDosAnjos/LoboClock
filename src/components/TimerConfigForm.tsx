@@ -9,35 +9,35 @@ interface TimerConfigFormProps {
   onValidationChange?: (isValid: boolean) => void;
 }
 
-export const TimerConfigForm = ({ 
-  strategy, 
-  config, 
+export const TimerConfigForm = ({
+  strategy,
+  config,
   onChange,
-  onValidationChange
+  onValidationChange,
 }: TimerConfigFormProps) => {
   const params = strategy.getConfigParams();
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   useEffect(() => {
     validateAll();
   }, [config]);
-  
+
   const validateAll = () => {
     const newErrors: Record<string, string> = {};
     let isValid = true;
-    
+
     params.forEach(param => {
       const value = config[param.name];
-      
+
       if (value === undefined || value === null || value === '') {
         newErrors[param.name] = `${param.label} is required`;
         isValid = false;
         return;
       }
-      
+
       if (param.type === 'number') {
         const numValue = Number(value);
-        
+
         if (isNaN(numValue)) {
           newErrors[param.name] = `${param.label} must be a valid number`;
           isValid = false;
@@ -50,57 +50,57 @@ export const TimerConfigForm = ({
         }
       }
     });
-    
+
     setErrors(newErrors);
     if (onValidationChange) {
       onValidationChange(isValid);
     }
-    
+
     return isValid;
   };
-  
+
   return (
     <View style={styles.container}>
-      {params.map((param) => {
+      {params.map(param => {
         const hasError = !!errors[param.name];
-        
+
         return (
           <View key={param.name} style={styles.paramContainer}>
             <Text style={styles.paramLabel}>{param.label}</Text>
-            
+
             <View style={styles.inputContainer}>
               <TextInput
-                style={[
-                  styles.input,
-                  hasError && styles.inputError
-                ]}
+                style={[styles.input, hasError && styles.inputError]}
                 value={
-                  config[param.name] !== undefined && config[param.name] !== null
+                  config[param.name] !== undefined &&
+                  config[param.name] !== null
                     ? config[param.name].toString()
                     : ''
                 }
                 placeholder={param.defaultValue.toString()}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   // Allow empty text for editing
                   if (text === '') {
                     onChange(param.name, '');
                     return;
                   }
-                  
+
                   // Convert to appropriate type
                   let value;
                   if (param.type === 'number') {
                     // Parse number but don't convert to default if invalid
-                    value = isNaN(parseInt(text, 10)) ? text : parseInt(text, 10);
+                    value = isNaN(parseInt(text, 10))
+                      ? text
+                      : parseInt(text, 10);
                   } else {
                     value = text;
                   }
-                  
+
                   onChange(param.name, value);
                 }}
                 keyboardType={param.type === 'number' ? 'numeric' : 'default'}
               />
-              
+
               {hasError && (
                 <Text style={styles.errorText}>{errors[param.name]}</Text>
               )}
@@ -146,5 +146,5 @@ const styles = StyleSheet.create({
     color: '#ff3b30',
     fontSize: 12,
     marginTop: 4,
-  }
+  },
 });

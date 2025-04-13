@@ -1,37 +1,44 @@
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
 
 export class ByoYomiStrategy implements TimerStrategy {
-  name = "Byo-Yomi";
-  description = "After main time expires, player has fixed periods for each move";
-  
+  name = 'Byo-Yomi';
+  description =
+    'After main time expires, player has fixed periods for each move';
+
   private mainTimes: number[] = [0, 0]; // Main time bank for each player
   private byoYomiTimes: number[] = [0, 0]; // Current byo-yomi period time remaining
   private inByoYomi: boolean[] = [false, false]; // Whether each player is in byo-yomi
   private periodsRemaining: number[] = [0, 0]; // Periods remaining for each player
   private lastSwitchInByoYomi: boolean[] = [false, false]; // Track if player was in byo-yomi when last switched
-  
+
   private currentPlayer: number = 0;
   initialTimeMs: number;
   private byoYomiPeriodMs: number;
   private numPeriods: number;
-  
-  constructor(initialTimeMinutes: number = 30, byoYomiPeriodSeconds: number = 30, numPeriods: number = 5) {
+
+  constructor(
+    initialTimeMinutes: number = 30,
+    byoYomiPeriodSeconds: number = 30,
+    numPeriods: number = 5,
+  ) {
     this.initialTimeMs = initialTimeMinutes * 60 * 1000;
     this.byoYomiPeriodMs = byoYomiPeriodSeconds * 1000;
     this.numPeriods = numPeriods;
     this.reset();
   }
-  
+
   getRemainingTime(playerId: number): number {
     // Return byo-yomi time if in byo-yomi, otherwise main time
-    return this.inByoYomi[playerId] ? this.byoYomiTimes[playerId] : this.mainTimes[playerId];
+    return this.inByoYomi[playerId]
+      ? this.byoYomiTimes[playerId]
+      : this.mainTimes[playerId];
   }
-  
+
   setRemainingTime(playerId: number, timeMs: number): void {
     if (!this.inByoYomi[playerId]) {
       // Player is using main time
       this.mainTimes[playerId] = timeMs;
-      
+
       // Check if main time has expired and we need to enter byo-yomi
       if (this.mainTimes[playerId] <= 0) {
         this.mainTimes[playerId] = 0;
@@ -44,11 +51,11 @@ export class ByoYomiStrategy implements TimerStrategy {
     } else {
       // Player is in byo-yomi
       this.byoYomiTimes[playerId] = timeMs;
-      
+
       // Check if current period has expired
       if (this.byoYomiTimes[playerId] <= 0) {
         this.periodsRemaining[playerId]--;
-        
+
         if (this.periodsRemaining[playerId] > 0) {
           // Start next period
           this.byoYomiTimes[playerId] = this.byoYomiPeriodMs;
@@ -59,27 +66,32 @@ export class ByoYomiStrategy implements TimerStrategy {
       }
     }
   }
-  
+
   switchPlayer(): void {
     const previousPlayer = this.currentPlayer;
-    
+
     // If current player was in byo-yomi, reset their period timer only if they still have periods
-    if (this.inByoYomi[previousPlayer] && this.periodsRemaining[previousPlayer] > 0) {
+    if (
+      this.inByoYomi[previousPlayer] &&
+      this.periodsRemaining[previousPlayer] > 0
+    ) {
       this.byoYomiTimes[previousPlayer] = this.byoYomiPeriodMs;
     }
-    
+
     this.currentPlayer = 1 - this.currentPlayer; // Toggle between 0 and 1
-    
+
     // Reset the tracking flag
     this.lastSwitchInByoYomi[previousPlayer] = false;
   }
-  
+
   isGameOver(): boolean {
     // Game is over if either player has used all main time and all byo-yomi periods
-    return (this.inByoYomi[0] && this.periodsRemaining[0] <= 0) || 
-           (this.inByoYomi[1] && this.periodsRemaining[1] <= 0);
+    return (
+      (this.inByoYomi[0] && this.periodsRemaining[0] <= 0) ||
+      (this.inByoYomi[1] && this.periodsRemaining[1] <= 0)
+    );
   }
-  
+
   reset(): void {
     this.mainTimes = [this.initialTimeMs, this.initialTimeMs];
     this.byoYomiTimes = [this.byoYomiPeriodMs, this.byoYomiPeriodMs];
@@ -88,52 +100,55 @@ export class ByoYomiStrategy implements TimerStrategy {
     this.lastSwitchInByoYomi = [false, false];
     this.currentPlayer = 0;
   }
-  
+
   getConfigParams(): TimerConfigParam[] {
     return [
       {
-        name: "initialTimeMinutes",
-        type: "number",
-        label: "Main Time (minutes)",
+        name: 'initialTimeMinutes',
+        type: 'number',
+        label: 'Main Time (minutes)',
         defaultValue: 30,
         minValue: 1,
-        maxValue: 180
+        maxValue: 180,
       },
       {
-        name: "byoYomiPeriodSeconds",
-        type: "number",
-        label: "Period Length (seconds)",
+        name: 'byoYomiPeriodSeconds',
+        type: 'number',
+        label: 'Period Length (seconds)',
         defaultValue: 30,
         minValue: 5,
-        maxValue: 60
+        maxValue: 60,
       },
       {
-        name: "numPeriods",
-        type: "number",
-        label: "Number of Periods",
+        name: 'numPeriods',
+        type: 'number',
+        label: 'Number of Periods',
         defaultValue: 5,
         minValue: 1,
-        maxValue: 10
-      }
+        maxValue: 10,
+      },
     ];
   }
-  
+
   setConfigParam(paramName: string, value: any): void {
-    if (paramName === "initialTimeMinutes") {
+    if (paramName === 'initialTimeMinutes') {
       this.initialTimeMs = value * 60 * 1000;
-    } else if (paramName === "byoYomiPeriodSeconds") {
+    } else if (paramName === 'byoYomiPeriodSeconds') {
       this.byoYomiPeriodMs = value * 1000;
-    } else if (paramName === "numPeriods") {
+    } else if (paramName === 'numPeriods') {
       this.numPeriods = value;
     }
     this.reset();
   }
-  
+
   // Additional methods to provide UI feedback
-  getByoYomiStatus(playerId: number): { inByoYomi: boolean, periodsRemaining: number } {
+  getByoYomiStatus(playerId: number): {
+    inByoYomi: boolean;
+    periodsRemaining: number;
+  } {
     return {
       inByoYomi: this.inByoYomi[playerId],
-      periodsRemaining: this.periodsRemaining[playerId]
+      periodsRemaining: this.periodsRemaining[playerId],
     };
   }
 }

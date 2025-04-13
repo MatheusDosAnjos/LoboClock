@@ -1,37 +1,44 @@
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
 
 export class CanadianOvertimeStrategy implements TimerStrategy {
-  name = "Canadian Overtime";
-  description = "After main time, complete a specified number of moves within an overtime period";
-  
+  name = 'Canadian Overtime';
+  description =
+    'After main time, complete a specified number of moves within an overtime period';
+
   private mainTimes: number[] = [0, 0]; // Main time bank for each player
   private overtimeTimes: number[] = [0, 0]; // Overtime time remaining
   private inOvertime: boolean[] = [false, false]; // Whether each player is in overtime
   private movesMade: number[] = [0, 0]; // Moves made in current overtime period
   private justEnteredOvertime: boolean[] = [false, false]; // Track if player just entered overtime
-  
+
   private currentPlayer: number = 0;
   initialTimeMs: number;
   private overtimeMs: number;
   private movesRequired: number;
-  
-  constructor(initialTimeMinutes: number = 25, overtimeMinutes: number = 5, movesRequired: number = 20) {
+
+  constructor(
+    initialTimeMinutes: number = 25,
+    overtimeMinutes: number = 5,
+    movesRequired: number = 20,
+  ) {
     this.initialTimeMs = initialTimeMinutes * 60 * 1000;
     this.overtimeMs = overtimeMinutes * 60 * 1000;
     this.movesRequired = movesRequired;
     this.reset();
   }
-  
+
   getRemainingTime(playerId: number): number {
     // Return overtime time if in overtime, otherwise main time
-    return this.inOvertime[playerId] ? this.overtimeTimes[playerId] : this.mainTimes[playerId];
+    return this.inOvertime[playerId]
+      ? this.overtimeTimes[playerId]
+      : this.mainTimes[playerId];
   }
-  
+
   setRemainingTime(playerId: number, timeMs: number): void {
     if (!this.inOvertime[playerId]) {
       // Player is using main time
       this.mainTimes[playerId] = timeMs;
-      
+
       // Check if main time has expired and we need to enter overtime
       if (this.mainTimes[playerId] <= 0) {
         this.mainTimes[playerId] = 0;
@@ -43,7 +50,7 @@ export class CanadianOvertimeStrategy implements TimerStrategy {
     } else {
       // Player is in overtime
       this.overtimeTimes[playerId] = timeMs;
-      
+
       // Check if overtime has expired
       if (this.overtimeTimes[playerId] <= 0) {
         this.overtimeTimes[playerId] = 0;
@@ -51,14 +58,17 @@ export class CanadianOvertimeStrategy implements TimerStrategy {
       }
     }
   }
-  
+
   switchPlayer(): void {
     const previousPlayer = this.currentPlayer;
-    
+
     // If in overtime, count this as a move made
-    if (this.inOvertime[previousPlayer] && this.overtimeTimes[previousPlayer] > 0) {
+    if (
+      this.inOvertime[previousPlayer] &&
+      this.overtimeTimes[previousPlayer] > 0
+    ) {
       this.movesMade[previousPlayer]++;
-      
+
       // Check if player has completed the required moves for this overtime period
       if (this.movesMade[previousPlayer] >= this.movesRequired) {
         // Reset for a new overtime period
@@ -66,20 +76,22 @@ export class CanadianOvertimeStrategy implements TimerStrategy {
         this.overtimeTimes[previousPlayer] = this.overtimeMs;
       }
     }
-    
+
     // Switch player
     this.currentPlayer = 1 - this.currentPlayer;
-    
+
     // Reset flag
     this.justEnteredOvertime[previousPlayer] = false;
   }
-  
+
   isGameOver(): boolean {
     // Game is over if either player has used all main time and ran out of overtime
-    return (this.inOvertime[0] && this.overtimeTimes[0] <= 0) || 
-           (this.inOvertime[1] && this.overtimeTimes[1] <= 0);
+    return (
+      (this.inOvertime[0] && this.overtimeTimes[0] <= 0) ||
+      (this.inOvertime[1] && this.overtimeTimes[1] <= 0)
+    );
   }
-  
+
   reset(): void {
     this.mainTimes = [this.initialTimeMs, this.initialTimeMs];
     this.overtimeTimes = [this.overtimeMs, this.overtimeMs];
@@ -88,53 +100,57 @@ export class CanadianOvertimeStrategy implements TimerStrategy {
     this.justEnteredOvertime = [false, false];
     this.currentPlayer = 0;
   }
-  
+
   getConfigParams(): TimerConfigParam[] {
     return [
       {
-        name: "initialTimeMinutes",
-        type: "number",
-        label: "Main Time (minutes)",
+        name: 'initialTimeMinutes',
+        type: 'number',
+        label: 'Main Time (minutes)',
         defaultValue: 25,
         minValue: 1,
-        maxValue: 180
+        maxValue: 180,
       },
       {
-        name: "overtimeMinutes",
-        type: "number",
-        label: "Overtime (minutes)",
+        name: 'overtimeMinutes',
+        type: 'number',
+        label: 'Overtime (minutes)',
         defaultValue: 5,
         minValue: 1,
-        maxValue: 30
+        maxValue: 30,
       },
       {
-        name: "movesRequired",
-        type: "number",
-        label: "Moves Required",
+        name: 'movesRequired',
+        type: 'number',
+        label: 'Moves Required',
         defaultValue: 20,
         minValue: 5,
-        maxValue: 50
-      }
+        maxValue: 50,
+      },
     ];
   }
-  
+
   setConfigParam(paramName: string, value: any): void {
-    if (paramName === "initialTimeMinutes") {
+    if (paramName === 'initialTimeMinutes') {
       this.initialTimeMs = value * 60 * 1000;
-    } else if (paramName === "overtimeMinutes") {
+    } else if (paramName === 'overtimeMinutes') {
       this.overtimeMs = value * 60 * 1000;
-    } else if (paramName === "movesRequired") {
+    } else if (paramName === 'movesRequired') {
       this.movesRequired = value;
     }
     this.reset();
   }
-  
+
   // Additional methods to provide UI feedback
-  getOvertimeStatus(playerId: number): { inOvertime: boolean, movesMade: number, movesRequired: number } {
+  getOvertimeStatus(playerId: number): {
+    inOvertime: boolean;
+    movesMade: number;
+    movesRequired: number;
+  } {
     return {
       inOvertime: this.inOvertime[playerId],
       movesMade: this.movesMade[playerId],
-      movesRequired: this.movesRequired
+      movesRequired: this.movesRequired,
     };
   }
 }

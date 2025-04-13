@@ -1,18 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  TouchableOpacity, 
-  StyleSheet, 
-  Animated, 
-  LayoutAnimation, 
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Animated,
+  LayoutAnimation,
   Platform,
   UIManager,
-  InteractionManager
+  InteractionManager,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { TimerStrategyFactory, TimerType } from '../factories/TimerStrategyFactory';
+import {
+  TimerStrategyFactory,
+  TimerType,
+} from '../factories/TimerStrategyFactory';
 import { TimerConfigForm } from '../components/TimerConfigForm';
 
 // Enable LayoutAnimation for Android
@@ -25,26 +28,28 @@ if (Platform.OS === 'android') {
 const TimerSelectionScreen = () => {
   const navigation = useNavigation();
   const strategies = TimerStrategyFactory.getAllStrategies();
-  const [selectedStrategy, setSelectedStrategy] = useState<TimerType | null>(null);
+  const [selectedStrategy, setSelectedStrategy] = useState<TimerType | null>(
+    null,
+  );
   const [config, setConfig] = useState<Record<string, any>>({});
   const [isConfigValid, setIsConfigValid] = useState<boolean>(false);
   const scrollViewRef = useRef(null);
   const itemMeasurements = useRef({});
-  
+
   const handleStrategySelect = (type: TimerType) => {
     // Configure animation
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    
+
     // If selecting the same strategy, toggle it off
     if (selectedStrategy === type) {
       setSelectedStrategy(null);
       setIsConfigValid(false);
       return;
     }
-    
+
     const strategy = TimerStrategyFactory.createStrategy(type);
     setSelectedStrategy(type);
-    
+
     // Initialize config with default values
     const initialConfig = {};
     strategy.getConfigParams().forEach(param => {
@@ -52,7 +57,7 @@ const TimerSelectionScreen = () => {
     });
     setConfig(initialConfig);
     setIsConfigValid(true); // Default values are valid
-    
+
     // Wait for animations to complete before scrolling
     InteractionManager.runAfterInteractions(() => {
       // Use a setTimeout to ensure the expanded component has been fully rendered
@@ -60,79 +65,79 @@ const TimerSelectionScreen = () => {
         if (scrollViewRef.current && itemMeasurements.current[type]) {
           scrollViewRef.current.scrollTo({
             y: itemMeasurements.current[type],
-            animated: true
+            animated: true,
           });
         }
       }, 300);
     });
   };
-  
+
   const handleItemLayout = (type, y) => {
     itemMeasurements.current[type] = y;
   };
-  
+
   const handleConfigChange = (name: string, value: any) => {
-    setConfig({...config, [name]: value});
+    setConfig({ ...config, [name]: value });
   };
-  
+
   const handleConfigValidation = (isValid: boolean) => {
     setIsConfigValid(isValid);
   };
-  
+
   const handleStartGame = () => {
     // Convert any empty string values to defaults before starting
-    const finalConfig = {...config};
+    const finalConfig = { ...config };
     if (selectedStrategy) {
       const strategy = TimerStrategyFactory.createStrategy(selectedStrategy);
       strategy.getConfigParams().forEach(param => {
-        if (finalConfig[param.name] === '' || finalConfig[param.name] === undefined) {
+        if (
+          finalConfig[param.name] === '' ||
+          finalConfig[param.name] === undefined
+        ) {
           finalConfig[param.name] = param.defaultValue;
         }
       });
     }
-    
+
     navigation.navigate('Game', {
       strategyType: selectedStrategy,
-      config: finalConfig
+      config: finalConfig,
     });
   };
 
-  const renderStrategyItem = (strategy) => {
+  const renderStrategyItem = strategy => {
     const isSelected = selectedStrategy === strategy.type;
-    
+
     return (
-      <View 
-        key={strategy.type} 
+      <View
+        key={strategy.type}
         style={styles.strategyItemContainer}
-        onLayout={(event) => {
+        onLayout={event => {
           const { y } = event.nativeEvent.layout;
           handleItemLayout(strategy.type, y);
         }}
       >
-        <TouchableOpacity 
-          style={[
-            styles.strategyItem,
-            isSelected && styles.selectedStrategy
-          ]}
+        <TouchableOpacity
+          style={[styles.strategyItem, isSelected && styles.selectedStrategy]}
           onPress={() => handleStrategySelect(strategy.type)}
         >
           <Text style={styles.strategyName}>{strategy.name}</Text>
           <Text style={styles.strategyDesc}>{strategy.description}</Text>
         </TouchableOpacity>
-        
+
         {isSelected && (
           <Animated.View style={styles.configContainer}>
-            <TimerConfigForm 
+            <TimerConfigForm
               strategy={TimerStrategyFactory.createStrategy(strategy.type)}
               config={config}
               onChange={handleConfigChange}
               onValidationChange={handleConfigValidation}
             />
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={[
                 styles.startButton,
-                !isConfigValid && styles.startButtonDisabled
+                !isConfigValid && styles.startButtonDisabled,
               ]}
               onPress={handleStartGame}
               disabled={!isConfigValid}
@@ -148,14 +153,14 @@ const TimerSelectionScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Selecione o tipo de timer</Text>
-      
-      <ScrollView 
+
+      <ScrollView
         ref={scrollViewRef}
         style={styles.strategyList}
         showsVerticalScrollIndicator={true}
       >
         {strategies.map(renderStrategyItem)}
-        
+
         <View style={{ height: 100 }} />
       </ScrollView>
     </View>
@@ -228,7 +233,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
-  }
+  },
 });
 
 export default TimerSelectionScreen;
