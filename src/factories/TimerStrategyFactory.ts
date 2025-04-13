@@ -15,47 +15,33 @@ export enum TimerType {
   CANADIAN = 'canadian',
 }
 
+interface StrategyConstructor {
+  new (...args: any[]): TimerStrategy;
+  name: string;
+  description: string;
+}
+
+const strategyMap: Record<TimerType, StrategyConstructor> = {
+  [TimerType.CLASSICAL]: ClassicalStrategy,
+  [TimerType.INCREMENT]: IncrementStrategy,
+  [TimerType.BRONSTEIN]: BronsteinDelayStrategy,
+  [TimerType.HOURGLASS]: HourglassStrategy,
+  [TimerType.BYO_YOMI]: ByoYomiStrategy,
+  [TimerType.CANADIAN]: CanadianOvertimeStrategy,
+};
+
 export class TimerStrategyFactory {
   static createStrategy(
     type: TimerType,
     config?: Record<string, any>,
   ): TimerStrategy {
-    switch (type) {
-      case TimerType.CLASSICAL:
-        return new ClassicalStrategy(config?.initialTimeMinutes);
+    const StrategyClass = strategyMap[type];
 
-      case TimerType.INCREMENT:
-        return new IncrementStrategy(
-          config?.initialTimeMinutes,
-          config?.incrementSeconds,
-        );
-
-      case TimerType.BRONSTEIN:
-        return new BronsteinDelayStrategy(
-          config?.initialTimeMinutes,
-          config?.delaySeconds,
-        );
-
-      case TimerType.HOURGLASS:
-        return new HourglassStrategy(config?.initialTimeMinutes);
-
-      case TimerType.BYO_YOMI:
-        return new ByoYomiStrategy(
-          config?.initialTimeMinutes,
-          config?.byoYomiPeriodSeconds,
-          config?.numPeriods,
-        );
-
-      case TimerType.CANADIAN:
-        return new CanadianOvertimeStrategy(
-          config?.initialTimeMinutes,
-          config?.overtimeMinutes,
-          config?.movesRequired,
-        );
-
-      default:
-        return new ClassicalStrategy();
+    if (!StrategyClass) {
+      throw new Error(`Unsupported timer type: ${type}`);
     }
+
+    return new StrategyClass(...(config ? Object.values(config) : []));
   }
 
   static getAllStrategies(): {
@@ -63,37 +49,10 @@ export class TimerStrategyFactory {
     name: string;
     description: string;
   }[] {
-    return [
-      {
-        type: TimerType.CLASSICAL,
-        name: 'Classical',
-        description: 'Simple countdown timer',
-      },
-      {
-        type: TimerType.INCREMENT,
-        name: 'Increment',
-        description: 'Time added after each move',
-      },
-      {
-        type: TimerType.BRONSTEIN,
-        name: 'Bronstein Delay',
-        description: 'Time used for a move is added back up to maximum delay',
-      },
-      {
-        type: TimerType.HOURGLASS,
-        name: 'Hourglass',
-        description: "Your opponent's time increases as yours decreases",
-      },
-      {
-        type: TimerType.BYO_YOMI,
-        name: 'Byo-Yomi',
-        description: 'Fixed time periods for each move after main time expires',
-      },
-      {
-        type: TimerType.CANADIAN,
-        name: 'Canadian Overtime',
-        description: 'Complete specified moves within overtime period',
-      },
-    ];
+    return Object.entries(strategyMap).map(([type, StrategyClass]) => ({
+      type: type as TimerType,
+      name: StrategyClass.name,
+      description: StrategyClass.description,
+    }));
   }
 }

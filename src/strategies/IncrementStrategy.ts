@@ -1,8 +1,8 @@
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
 
 export class IncrementStrategy implements TimerStrategy {
-  name = 'Increment (Fischer)';
-  description =
+  static readonly  name = 'Increment (Fischer)';
+  static readonly description =
     "After each move, a fixed amount of time is added to the player's clock";
 
   private times: number[] = [0, 0]; // Player 1 and 2 remaining time (ms)

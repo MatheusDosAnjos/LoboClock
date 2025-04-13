@@ -1,8 +1,8 @@
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
 
 export class ClassicalStrategy implements TimerStrategy {
-  name = 'Classical';
-  description = 'Simple countdown timer with no additional time';
+  static readonly name = 'Classical';
+  static readonly description = 'Simple countdown timer with no additional time';
 
   private times: number[] = [0, 0]; // Player 1 and 2 remaining time (ms)
   private currentPlayer: number = 0;

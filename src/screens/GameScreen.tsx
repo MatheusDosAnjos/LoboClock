@@ -11,9 +11,8 @@ import {
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { GameController } from '../controllers/GameController';
 import { formatTime } from '../utils/timeFormatter';
-import { TimerType } from '../factories/TimerStrategyFactory';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 const GameScreen = () => {
   const route = useRoute();
@@ -78,7 +77,7 @@ const GameScreen = () => {
   const updateSpecialStatuses = () => {
     const strategy = gameController.getCurrentStrategy();
 
-    if (strategy.name === 'Byo-Yomi') {
+    if (strategy.constructor.name === 'Byo-Yomi') {
       const byoYomiStrategy = strategy as any;
       if (byoYomiStrategy.getByoYomiStatus) {
         setByoYomiStatus([
@@ -88,7 +87,7 @@ const GameScreen = () => {
       }
     }
 
-    if (strategy.name === 'Canadian Overtime') {
+    if (strategy.constructor.name === 'Canadian Overtime') {
       const canadianStrategy = strategy as any;
       if (canadianStrategy.getOvertimeStatus) {
         setCanadianStatus([
@@ -158,7 +157,7 @@ const GameScreen = () => {
   const renderSpecialStatus = player => {
     const strategy = gameController.getCurrentStrategy();
 
-    if (strategy.name === 'Byo-Yomi') {
+    if (strategy.constructor.name === 'Byo-Yomi') {
       const status = byoYomiStatus[player];
       if (status.inByoYomi) {
         return (
@@ -172,7 +171,7 @@ const GameScreen = () => {
       }
     }
 
-    if (strategy.name === 'Canadian Overtime') {
+    if (strategy.constructor.name === 'Canadian Overtime') {
       const status = canadianStatus[player];
       if (status.inOvertime) {
         return (

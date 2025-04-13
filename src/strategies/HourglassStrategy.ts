@@ -1,8 +1,8 @@
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
 
 export class HourglassStrategy implements TimerStrategy {
-  name = 'Hourglass';
-  description =
+  static readonly name = 'Hourglass';
+  static readonly description =
     "When one player's clock is running, the other player's clock increases";
 
   private times: number[] = [0, 0]; // Player 1 and 2 remaining time (ms)

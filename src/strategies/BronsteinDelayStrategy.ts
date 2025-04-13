@@ -1,8 +1,8 @@
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
 
 export class BronsteinDelayStrategy implements TimerStrategy {
-  name = 'Bronstein Delay';
-  description = 'Adds back the time used for a move, up to the maximum delay';
+  static readonly name = 'Bronstein Delay';
+  static readonly description = 'Adds back the time used for a move, up to the maximum delay';
 
   private times: number[] = [0, 0]; // Player 1 and 2 remaining time (ms)
   private moveStartTimes: number[] = [0, 0]; // Time at start of player's move

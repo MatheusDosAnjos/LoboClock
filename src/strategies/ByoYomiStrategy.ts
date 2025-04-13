@@ -1,8 +1,8 @@
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
 
 export class ByoYomiStrategy implements TimerStrategy {
-  name = 'Byo-Yomi';
-  description =
+  static readonly name = 'Byo-Yomi';
+  static readonly description =
     'After main time expires, player has fixed periods for each move';
 
   private mainTimes: number[] = [0, 0]; // Main time bank for each player

@@ -1,17 +1,15 @@
-export interface TimerStrategy {
-  name: string;
-  description: string;
-  initialTimeMs: number;
-
-  // Core methods
-  getRemainingTime(playerId: number): number;
-  setRemainingTime(playerId: number, timeMs: number): void; // New method
-  switchPlayer(): void;
-  isGameOver(): boolean;
-  reset(): void;
-
-  // Configuration methods
-  getConfigParams(): TimerConfigParam[];
+export abstract class TimerStrategy {
+  static readonly name: string;
+  static readonly description: string;
+  
+  initialTimeMs: number = 0;
+  
+  abstract getRemainingTime(playerId: number): number;
+  abstract setRemainingTime(playerId: number, timeMs: number): void;
+  abstract switchPlayer(): void;
+  abstract isGameOver(): boolean;
+  abstract reset(): void;
+  abstract getConfigParams(): TimerConfigParam[];
 }
 
 export interface TimerConfigParam {

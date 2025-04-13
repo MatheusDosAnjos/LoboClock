@@ -1,8 +1,8 @@
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
 
 export class CanadianOvertimeStrategy implements TimerStrategy {
-  name = 'Canadian Overtime';
-  description =
+  static readonly name = 'Canadian Overtime';
+  static readonly description =
     'After main time, complete a specified number of moves within an overtime period';
 
   private mainTimes: number[] = [0, 0]; // Main time bank for each player
