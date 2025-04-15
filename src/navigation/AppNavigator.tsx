@@ -7,11 +7,15 @@ import TimerSelectionScreen from '../screens/TimerSelectionScreen';
 import GameScreen from '../screens/GameScreen';
 import HelpScreen from '../screens/HelpScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import { TimerType } from '../factories/TimerStrategyFactory';
 
 export type RootStackParamList = {
   MainMenu: undefined;
   TimerSelection: undefined;
-  Game: undefined;
+  Game: {
+    strategyType: TimerType | null;
+    config: Record<string, any>;
+  };
   Help: undefined;
   Settings: undefined;
 };

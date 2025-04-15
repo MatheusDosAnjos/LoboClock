@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, Button, StyleSheet, Platform } from 'react-native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 
@@ -24,10 +24,12 @@ const MainMenuScreen = () => {
 
         <Button title="Help" onPress={() => navigation.navigate('Help')} />
 
-        <Button
-          title="Settings"
-          onPress={() => navigation.navigate('Settings')}
-        />
+        {Platform.OS !== 'web' && (
+          <Button
+            title="Settings"
+            onPress={() => navigation.navigate('Settings')}
+          />
+        )}
       </View>
     </View>
   );

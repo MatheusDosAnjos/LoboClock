@@ -12,11 +12,13 @@ import {
   InteractionManager,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import {
   TimerStrategyFactory,
   TimerType,
 } from '../factories/TimerStrategyFactory';
 import { TimerConfigForm } from '../components/TimerConfigForm';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
 // Enable LayoutAnimation for Android
 if (Platform.OS === 'android') {
@@ -25,16 +27,18 @@ if (Platform.OS === 'android') {
   }
 }
 
+type TimerSelectionNavigationProp = StackNavigationProp<RootStackParamList, 'TimerSelection'>;
+
 const TimerSelectionScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<TimerSelectionNavigationProp>();
   const strategies = TimerStrategyFactory.getAllStrategies();
   const [selectedStrategy, setSelectedStrategy] = useState<TimerType | null>(
     null,
   );
   const [config, setConfig] = useState<Record<string, any>>({});
   const [isConfigValid, setIsConfigValid] = useState<boolean>(false);
-  const scrollViewRef = useRef(null);
-  const itemMeasurements = useRef({});
+  const scrollViewRef = useRef<ScrollView | null>(null);
+  const itemMeasurements = useRef<{ [key in TimerType]?: number }>({});
 
   const handleStrategySelect = (type: TimerType) => {
     // Configure animation
@@ -51,7 +55,7 @@ const TimerSelectionScreen = () => {
     setSelectedStrategy(type);
 
     // Initialize config with default values
-    const initialConfig = {};
+    const initialConfig: { [key: string]: any } = {};
     strategy.getConfigParams().forEach(param => {
       initialConfig[param.name] = param.defaultValue;
     });
@@ -62,9 +66,9 @@ const TimerSelectionScreen = () => {
     InteractionManager.runAfterInteractions(() => {
       // Use a setTimeout to ensure the expanded component has been fully rendered
       setTimeout(() => {
-        if (scrollViewRef.current && itemMeasurements.current[type]) {
+        if (scrollViewRef.current && itemMeasurements.current[type as TimerType]) {
           scrollViewRef.current.scrollTo({
-            y: itemMeasurements.current[type],
+            y: itemMeasurements.current[type as TimerType],
             animated: true,
           });
         }
@@ -72,7 +76,7 @@ const TimerSelectionScreen = () => {
     });
   };
 
-  const handleItemLayout = (type, y) => {
+  const handleItemLayout = (type: TimerType, y: number) => {
     itemMeasurements.current[type] = y;
   };
 
@@ -105,7 +109,7 @@ const TimerSelectionScreen = () => {
     });
   };
 
-  const renderStrategyItem = strategy => {
+  const renderStrategyItem = (strategy: { type: TimerType; name: string; description: string }) => {
     const isSelected = selectedStrategy === strategy.type;
 
     return (
@@ -179,6 +183,7 @@ const styles = StyleSheet.create({
   },
   strategyList: {
     flex: 1,
+    overflow: Platform.OS === 'web' ? 'scroll' : 'visible',
   },
   strategyItemContainer: {
     marginBottom: 16,

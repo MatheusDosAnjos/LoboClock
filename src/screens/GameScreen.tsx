@@ -7,8 +7,9 @@ import {
   Alert,
   Animated,
   Dimensions,
+  Platform,
 } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, NavigationProp } from '@react-navigation/native';
 import { GameController } from '../controllers/GameController';
 import { formatTime } from '../utils/timeFormatter';
 import { TimerType } from '../factories/TimerStrategyFactory';
@@ -17,12 +18,14 @@ const { width, height } = Dimensions.get('window');
 
 const GameScreen = () => {
   const route = useRoute();
-  const navigation = useNavigation();
-  const { strategyType, config } = route.params;
+  const navigation = useNavigation<NavigationProp<Record<string, undefined>>>();
+  const { strategyType, config, playerNames } = route.params as {
+    strategyType?: TimerType;
+    config?: any;
+    playerNames?: [string, string];
+  };
 
-  const [gameController] = useState(
-    () => new GameController(strategyType, config),
-  );
+  const [gameController] = useState(() => new GameController(strategyType, config));
   const [times, setTimes] = useState<number[]>([0, 0]);
   const [moveCounts, setMoveCounts] = useState<number[]>([0, 0]);
   const [currentPlayer, setCurrentPlayer] = useState(0);
@@ -30,7 +33,6 @@ const GameScreen = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [animValue] = useState(new Animated.Value(0));
 
-  // States for special strategies
   const [byoYomiStatus, setByoYomiStatus] = useState([
     { inByoYomi: false, periodsRemaining: 0 },
     { inByoYomi: false, periodsRemaining: 0 },
@@ -40,7 +42,8 @@ const GameScreen = () => {
     { inOvertime: false, movesMade: 0, movesRequired: 0 },
   ]);
 
-  // Initialize timers and listeners
+  const playerLabels = playerNames ?? ['Player 1', 'Player 2'];
+
   useEffect(() => {
     const initialTimes = [
       gameController.getCurrentStrategy().getRemainingTime(0),
@@ -60,7 +63,7 @@ const GameScreen = () => {
     });
 
     gameController.onGameOver(() => {
-      const winner = times[0] <= 0 ? 'Player 2' : 'Player 1';
+      const winner = times[0] <= 0 ? playerLabels[1] : playerLabels[0];
       const winnerMoves = times[0] <= 0 ? moveCounts[1] : moveCounts[0];
 
       Alert.alert('Game Over', `${winner} wins!\nMoves made: ${winnerMoves}`, [
@@ -74,7 +77,6 @@ const GameScreen = () => {
     };
   }, []);
 
-  // Update statuses for special strategies
   const updateSpecialStatuses = () => {
     const strategy = gameController.getCurrentStrategy();
 
@@ -99,7 +101,6 @@ const GameScreen = () => {
     }
   };
 
-  // Animate the active indicator
   useEffect(() => {
     Animated.timing(animValue, {
       toValue: currentPlayer,
@@ -132,9 +133,7 @@ const GameScreen = () => {
     if (isPaused) {
       gameController.start();
       setIsPaused(false);
-      if (!gameStarted) {
-        setGameStarted(true); // Ensure gameStarted is set when first starting
-      }
+      if (!gameStarted) setGameStarted(true);
     } else {
       gameController.pause();
       setIsPaused(true);
@@ -149,25 +148,21 @@ const GameScreen = () => {
     ]);
     setMoveCounts(gameController.getMoveCount());
     updateSpecialStatuses();
-
     setCurrentPlayer(0);
     setIsPaused(true);
     setGameStarted(false);
   };
 
-  const renderSpecialStatus = player => {
+  const renderSpecialStatus = (player: number) => {
     const strategy = gameController.getCurrentStrategy();
 
     if (strategy.name === 'Byo-Yomi') {
       const status = byoYomiStatus[player];
       if (status.inByoYomi) {
         return (
-          <View style={styles.statusContainer}>
-            <Text style={styles.statusText}>
-              Byo-Yomi: {status.periodsRemaining} period
-              {status.periodsRemaining !== 1 ? 's' : ''} left
-            </Text>
-          </View>
+          <Text style={styles.statusText}>
+            Byo-Yomi: {status.periodsRemaining} period{status.periodsRemaining !== 1 ? 's' : ''} left
+          </Text>
         );
       }
     }
@@ -176,11 +171,9 @@ const GameScreen = () => {
       const status = canadianStatus[player];
       if (status.inOvertime) {
         return (
-          <View style={styles.statusContainer}>
-            <Text style={styles.statusText}>
-              Moves: {status.movesMade}/{status.movesRequired}
-            </Text>
-          </View>
+          <Text style={styles.statusText}>
+            Moves: {status.movesMade}/{status.movesRequired}
+          </Text>
         );
       }
     }
@@ -188,7 +181,7 @@ const GameScreen = () => {
     return null;
   };
 
-  const activeIndicator = gameStarted && (
+  const activeIndicator = gameStarted && Platform.OS !== 'web' && (
     <Animated.View
       style={[
         styles.activeIndicator,
@@ -202,64 +195,85 @@ const GameScreen = () => {
     />
   );
 
+  const renderPlayerClock = (player: number) => {
+    const isCurrent = currentPlayer === player && !isPaused;
+    const isPlayer2 = player === 1;
+  
+    return (
+      <TouchableOpacity
+        style={[
+          styles.playerClock,
+          isPlayer2 ? styles.player2Clock : styles.player1Clock,
+          isCurrent && styles.activeClock,
+        ]}
+        onPress={() => handlePlayerPress(player)}
+        activeOpacity={0.8}
+      >
+        <View
+          style={[
+            styles.playerInfoContainer,
+            Platform.OS !== 'web' && isPlayer2 && { transform: [{ rotate: '180deg' }] },
+          ]}
+        >
+          <Text style={styles.timeText}>{formatTime(times[player])}</Text>
+          <Text style={styles.playerLabel}>Player {player + 1}</Text>
+          <Text style={styles.moveCountText}>Moves: {moveCounts[player]}</Text>
+          {renderSpecialStatus(player)}
+        </View>
+      </TouchableOpacity>
+    );
+  };  
+
+  const renderControls = () => (
+    <View style={Platform.OS === 'web' ? styles.webControls : styles.mobileControls}>
+      <TouchableOpacity style={styles.controlButton} onPress={handlePauseToggle}>
+        <Text style={styles.controlText}>{isPaused ? 'Start' : 'Pause'}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.controlButton} onPress={handleReset}>
+        <Text style={styles.controlText}>Reset</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.controlButton} onPress={() => navigation.navigate('TimerSelection')}>
+        <Text style={styles.controlText}>Change Timer</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       {activeIndicator}
-
-      {/* Player 2 (Top) */}
-      <TouchableOpacity
+      <View
         style={[
-          styles.playerClock,
-          styles.player2Clock,
-          currentPlayer === 1 && !isPaused && styles.activeClock,
+          styles.clockContainer,
+          Platform.OS === 'web' ? styles.webClockContainer : styles.mobileClockContainer,
         ]}
-        onPress={() => handlePlayerPress(1)}
-        activeOpacity={0.8}
       >
-        <View style={styles.playerInfoContainer}>
-          <Text style={styles.timeText}>{formatTime(times[1])}</Text>
-          <Text style={styles.playerLabel}>Player 2</Text>
-          <Text style={styles.moveCountText}>Moves: {moveCounts[1]}</Text>
-          {renderSpecialStatus(1)}
-        </View>
-      </TouchableOpacity>
-
-      {/* Controls */}
-      <View style={styles.controls}>
-        <TouchableOpacity
-          style={styles.controlButton}
-          onPress={handlePauseToggle}
-        >
-          <Text style={styles.controlText}>{isPaused ? 'Start' : 'Pause'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.controlButton} onPress={handleReset}>
-          <Text style={styles.controlText}>Reset</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.controlButton}
-          onPress={() => navigation.navigate('TimerSelection')}
-        >
-          <Text style={styles.controlText}>Change Timer</Text>
-        </TouchableOpacity>
+        {Platform.OS === 'web' ? (
+          <>
+            {renderPlayerClock(0)}
+            {renderControls()}
+            {renderPlayerClock(1)}
+          </>
+        ) : (
+          <>
+            {renderPlayerClock(1)}
+            <View style={styles.mobileControls}>
+              <TouchableOpacity style={styles.controlButton} onPress={handlePauseToggle}>
+                <Text style={styles.controlText}>{isPaused ? 'Start' : 'Pause'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.controlButton} onPress={handleReset}>
+                <Text style={styles.controlText}>Reset</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.controlButton}
+                onPress={() => navigation.navigate('TimerSelection')}
+              >
+                <Text style={styles.controlText}>Change Timer</Text>
+              </TouchableOpacity>
+            </View>
+            {renderPlayerClock(0)}
+          </>
+        )}
       </View>
-
-      {/* Player 1 (Bottom) */}
-      <TouchableOpacity
-        style={[
-          styles.playerClock,
-          styles.player1Clock,
-          currentPlayer === 0 && !isPaused && styles.activeClock,
-        ]}
-        onPress={() => handlePlayerPress(0)}
-        activeOpacity={0.8}
-      >
-        <View style={styles.playerInfoContainer}>
-          <Text style={styles.timeText}>{formatTime(times[0])}</Text>
-          <Text style={styles.playerLabel}>Player 1</Text>
-          <Text style={styles.moveCountText}>Moves: {moveCounts[0]}</Text>
-          {renderSpecialStatus(0)}
-        </View>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -269,11 +283,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
+  clockContainer: {
+    flex: 1,
+  },
+  mobileClockContainer: {
+    flexDirection: 'column',
+  },
+  webClockContainer: {
+    flexDirection: 'row',
+  },
   playerClock: {
-    flex: 2,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f0f0f0',
+    minHeight: height / 2,
   },
   player1Clock: {
     borderTopWidth: 1,
@@ -282,7 +306,6 @@ const styles = StyleSheet.create({
   player2Clock: {
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
-    transform: [{ rotate: '180deg' }],
   },
   activeClock: {
     backgroundColor: '#e6f2ff',
@@ -313,29 +336,32 @@ const styles = StyleSheet.create({
     marginTop: 5,
     color: '#777',
   },
-  controls: {
+  mobileControls: {
     height: 60,
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     backgroundColor: '#333',
   },
+  webControls: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    backgroundColor: '#333',
+  },
   controlButton: {
     padding: 10,
     backgroundColor: '#555',
     borderRadius: 4,
+    marginVertical: Platform.OS === 'web' ? 10 : 0,
+    marginHorizontal: Platform.OS === 'web' ? 0 : 10,
   },
   controlText: {
     color: '#fff',
     fontSize: 16,
   },
-  statusContainer: {
-    marginTop: 10,
-    padding: 5,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    borderRadius: 5,
-  },
   statusText: {
+    marginTop: 5,
     fontSize: 14,
     color: '#333',
   },
