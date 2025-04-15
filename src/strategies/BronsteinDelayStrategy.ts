@@ -1,8 +1,8 @@
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
 
 export class BronsteinDelayStrategy implements TimerStrategy {
-  static readonly name = 'Bronstein Delay';
-  static readonly description = 'Adds back the time used for a move, up to the maximum delay';
+  static readonly name = 'Atraso Bronstein';
+  static readonly description = 'Adiciona de volta o tempo usado para um movimento, até o atraso máximo';
 
   private times: number[] = [0, 0]; // Player 1 and 2 remaining time (ms)
   private moveStartTimes: number[] = [0, 0]; // Time at start of player's move
@@ -11,7 +11,7 @@ export class BronsteinDelayStrategy implements TimerStrategy {
   private delayMs: number;
   private isFirstUpdate: boolean[] = [true, true]; // Track first update for each player
 
-  constructor(initialTimeMinutes: number = 5, delaySeconds: number = 3) {
+  constructor(initialTimeMinutes: number, delaySeconds: number) {
     this.initialTimeMs = initialTimeMinutes * 60 * 1000;
     this.delayMs = delaySeconds * 1000;
     this.reset();
@@ -68,7 +68,7 @@ export class BronsteinDelayStrategy implements TimerStrategy {
       {
         name: 'initialTimeMinutes',
         type: 'number',
-        label: 'Initial Time (minutes)',
+        label: 'Tempo inicial (min)',
         defaultValue: 5,
         minValue: 1,
         maxValue: 180,
@@ -76,7 +76,7 @@ export class BronsteinDelayStrategy implements TimerStrategy {
       {
         name: 'delaySeconds',
         type: 'number',
-        label: 'Delay (seconds)',
+        label: 'Atraso (s)',
         defaultValue: 3,
         minValue: 0,
         maxValue: 60,

@@ -217,8 +217,8 @@ const GameScreen = () => {
       >
         <View style={styles.playerInfoContainer}>
           <Text style={styles.timeText}>{formatTime(times[1])}</Text>
-          <Text style={styles.playerLabel}>Player 2</Text>
-          <Text style={styles.moveCountText}>Moves: {moveCounts[1]}</Text>
+          <Text style={styles.playerLabel}>Jogador 2</Text>
+          <Text style={styles.moveCountText}>Jogadas: {moveCounts[1]}</Text>
           {renderSpecialStatus(1)}
         </View>
       </TouchableOpacity>
@@ -229,7 +229,9 @@ const GameScreen = () => {
           style={styles.controlButton}
           onPress={handlePauseToggle}
         >
-          <Text style={styles.controlText}>{isPaused ? 'Start' : 'Pause'}</Text>
+          <Text style={styles.controlText}>
+            {isPaused ? 'Iniciar' : 'Pausar'}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.controlButton} onPress={handleReset}>
           <Text style={styles.controlText}>Reset</Text>
@@ -238,7 +240,7 @@ const GameScreen = () => {
           style={styles.controlButton}
           onPress={() => navigation.navigate('TimerSelection')}
         >
-          <Text style={styles.controlText}>Change Timer</Text>
+          <Text style={styles.controlText}>Trocar timer</Text>
         </TouchableOpacity>
       </View>
 
@@ -254,8 +256,8 @@ const GameScreen = () => {
       >
         <View style={styles.playerInfoContainer}>
           <Text style={styles.timeText}>{formatTime(times[0])}</Text>
-          <Text style={styles.playerLabel}>Player 1</Text>
-          <Text style={styles.moveCountText}>Moves: {moveCounts[0]}</Text>
+          <Text style={styles.playerLabel}>Jogador 1</Text>
+          <Text style={styles.moveCountText}>Jogadas: {moveCounts[0]}</Text>
           {renderSpecialStatus(0)}
         </View>
       </TouchableOpacity>

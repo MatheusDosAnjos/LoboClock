@@ -1,16 +1,16 @@
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
 
 export class IncrementStrategy implements TimerStrategy {
-  static readonly  name = 'Increment (Fischer)';
+  static readonly  name = 'Incremento (Fischer)';
   static readonly description =
-    "After each move, a fixed amount of time is added to the player's clock";
+    "Após cada movimento, uma quantidade fixa de tempo é adicionada ao relógio do jogador";
 
   private times: number[] = [0, 0]; // Player 1 and 2 remaining time (ms)
   private currentPlayer: number = 0;
   initialTimeMs: number;
   private incrementMs: number;
 
-  constructor(initialTimeMinutes: number = 3, incrementSeconds: number = 2) {
+  constructor(initialTimeMinutes: number, incrementSeconds: number) {
     this.initialTimeMs = initialTimeMinutes * 60 * 1000;
     this.incrementMs = incrementSeconds * 1000;
     this.reset();
@@ -44,7 +44,7 @@ export class IncrementStrategy implements TimerStrategy {
       {
         name: 'initialTimeMinutes',
         type: 'number',
-        label: 'Initial Time (minutes)',
+        label: 'Tempo inicial (min)',
         defaultValue: 3,
         minValue: 1,
         maxValue: 180,
@@ -52,7 +52,7 @@ export class IncrementStrategy implements TimerStrategy {
       {
         name: 'incrementSeconds',
         type: 'number',
-        label: 'Increment (seconds)',
+        label: 'Incremento (s)',
         defaultValue: 2,
         minValue: 0,
         maxValue: 60,

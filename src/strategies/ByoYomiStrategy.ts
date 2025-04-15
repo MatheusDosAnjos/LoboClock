@@ -106,7 +106,7 @@ export class ByoYomiStrategy implements TimerStrategy {
       {
         name: 'initialTimeMinutes',
         type: 'number',
-        label: 'Main Time (minutes)',
+        label: 'Tempo inicial (min)',
         defaultValue: 30,
         minValue: 1,
         maxValue: 180,
@@ -114,7 +114,7 @@ export class ByoYomiStrategy implements TimerStrategy {
       {
         name: 'byoYomiPeriodSeconds',
         type: 'number',
-        label: 'Period Length (seconds)',
+        label: 'Tempo do periodo (s)',
         defaultValue: 30,
         minValue: 5,
         maxValue: 60,
@@ -122,7 +122,7 @@ export class ByoYomiStrategy implements TimerStrategy {
       {
         name: 'numPeriods',
         type: 'number',
-        label: 'Number of Periods',
+        label: 'Quantidade de periodos',
         defaultValue: 5,
         minValue: 1,
         maxValue: 10,

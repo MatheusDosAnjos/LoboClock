@@ -17,9 +17,9 @@ export class CanadianOvertimeStrategy implements TimerStrategy {
   private movesRequired: number;
 
   constructor(
-    initialTimeMinutes: number = 25,
-    overtimeMinutes: number = 5,
-    movesRequired: number = 20,
+    initialTimeMinutes: number,
+    overtimeMinutes: number,
+    movesRequired: number,
   ) {
     this.initialTimeMs = initialTimeMinutes * 60 * 1000;
     this.overtimeMs = overtimeMinutes * 60 * 1000;
@@ -106,7 +106,7 @@ export class CanadianOvertimeStrategy implements TimerStrategy {
       {
         name: 'initialTimeMinutes',
         type: 'number',
-        label: 'Main Time (minutes)',
+        label: 'Tempo inicial (min)',
         defaultValue: 25,
         minValue: 1,
         maxValue: 180,
@@ -114,7 +114,7 @@ export class CanadianOvertimeStrategy implements TimerStrategy {
       {
         name: 'overtimeMinutes',
         type: 'number',
-        label: 'Overtime (minutes)',
+        label: 'Tempo extra (min)',
         defaultValue: 5,
         minValue: 1,
         maxValue: 30,
@@ -122,7 +122,7 @@ export class CanadianOvertimeStrategy implements TimerStrategy {
       {
         name: 'movesRequired',
         type: 'number',
-        label: 'Moves Required',
+        label: 'Jogadas necessárias',
         defaultValue: 20,
         minValue: 5,
         maxValue: 50,
