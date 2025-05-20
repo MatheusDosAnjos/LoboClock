@@ -3,13 +3,13 @@ import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
 export class ByoYomiStrategy implements TimerStrategy {
   static readonly name = 'Byo-Yomi';
   static readonly description =
-    'After main time expires, player has fixed periods for each move';
+    'Após o tempo principal acabar, o jogador tem períodos fixos para cada jogada';
 
-  private mainTimes: number[] = [0, 0]; // Main time bank for each player
-  private byoYomiTimes: number[] = [0, 0]; // Current byo-yomi period time remaining
-  private inByoYomi: boolean[] = [false, false]; // Whether each player is in byo-yomi
-  private periodsRemaining: number[] = [0, 0]; // Periods remaining for each player
-  private lastSwitchInByoYomi: boolean[] = [false, false]; // Track if player was in byo-yomi when last switched
+  private mainTimes: number[] = [0, 0];
+  private byoYomiTimes: number[] = [0, 0];
+  private inByoYomi: boolean[] = [false, false];
+  private periodsRemaining: number[] = [0, 0];
+  private lastSwitchInByoYomi: boolean[] = [false, false];
 
   private currentPlayer: number = 0;
   initialTimeMs: number;
@@ -28,7 +28,6 @@ export class ByoYomiStrategy implements TimerStrategy {
   }
 
   getRemainingTime(playerId: number): number {
-    // Return byo-yomi time if in byo-yomi, otherwise main time
     return this.inByoYomi[playerId]
       ? this.byoYomiTimes[playerId]
       : this.mainTimes[playerId];

@@ -3,13 +3,13 @@ import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
 export class CanadianOvertimeStrategy implements TimerStrategy {
   static readonly name = 'Canadian Overtime';
   static readonly description =
-    'After main time, complete a specified number of moves within an overtime period';
+    'Após o fim do tempo principal, o jogador tem um tempo fixo para cada jogada durante o período extra.';
 
-  private mainTimes: number[] = [0, 0]; // Main time bank for each player
-  private overtimeTimes: number[] = [0, 0]; // Overtime time remaining
-  private inOvertime: boolean[] = [false, false]; // Whether each player is in overtime
-  private movesMade: number[] = [0, 0]; // Moves made in current overtime period
-  private justEnteredOvertime: boolean[] = [false, false]; // Track if player just entered overtime
+  private mainTimes: number[] = [0, 0];
+  private overtimeTimes: number[] = [0, 0];
+  private inOvertime: boolean[] = [false, false];
+  private movesMade: number[] = [0, 0];
+  private justEnteredOvertime: boolean[] = [false, false];
 
   private currentPlayer: number = 0;
   initialTimeMs: number;

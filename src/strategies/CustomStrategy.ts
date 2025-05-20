@@ -215,18 +215,18 @@ export class CustomStrategy implements TimerStrategy {
       {
         name: 'overtimeMode',
         type: 'select',
-        label: 'Modo de prorrogação',
+        label: 'Overtime',
         defaultValue: 'none',
         options: [
-          { label: 'Sem prorrogação', value: 'none' },
+          { label: 'Desligado', value: 'none' },
           { label: 'Mesmas configurações', value: 'same' },
-          { label: 'Personalizada', value: 'custom' },
+          { label: 'Personalizado', value: 'custom' },
         ],
       },
       {
         name: 'otInitialMinutes',
         type: 'number',
-        label: 'Tempo de prorrogação (min)',
+        label: 'Tempo inicial OT (min)',
         defaultValue: 5,
         minValue: 0,
         maxValue: 180,
@@ -235,7 +235,7 @@ export class CustomStrategy implements TimerStrategy {
       {
         name: 'otIncrementSeconds',
         type: 'number',
-        label: 'Incremento de prorrogação (s)',
+        label: 'Incremento OT (s)',
         defaultValue: 0,
         minValue: 0,
         maxValue: 60,
@@ -244,7 +244,7 @@ export class CustomStrategy implements TimerStrategy {
       {
         name: 'otExtraSeconds',
         type: 'number',
-        label: 'Tempo extra por jogada na prorrogação (s)',
+        label: 'Tempo extra por jogada OT (s)',
         defaultValue: 0,
         minValue: 0,
         maxValue: 60,
@@ -253,7 +253,7 @@ export class CustomStrategy implements TimerStrategy {
       {
         name: 'otAccumulate',
         type: 'select',
-        label: 'Acumular tempo extra na prorrogação',
+        label: 'Acumular tempo extra OT',
         defaultValue: false,
         options: [
           { label: 'Não', value: false },
