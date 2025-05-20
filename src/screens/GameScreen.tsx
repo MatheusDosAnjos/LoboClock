@@ -63,10 +63,9 @@ const GameScreen = () => {
     });
 
     gameController.onGameOver(() => {
-      const winner = times[0] <= 0 ? 'Player 2' : 'Player 1';
-      const winnerMoves = times[0] <= 0 ? moveCounts[1] : moveCounts[0];
+      const winner = times[0] <= 0 ? 'Jogador 2' : 'Jogador 1';
 
-      Alert.alert('Game Over', `${winner} wins!\nMoves made: ${winnerMoves}`, [
+      Alert.alert('Fim de jogo', `Vencedor: ${winner}`, [
         { text: 'New Game', onPress: handleReset },
         { text: 'Main Menu', onPress: () => navigation.navigate('MainMenu') },
       ]);

@@ -35,8 +35,7 @@ export class CustomStrategy implements TimerStrategy {
     otExtraSeconds: number = 0,
     otAccumulate: boolean = false,
   ) {
-    // this.initialTimeMs = initialMinutes * 60_000;
-    this.initialTimeMs = 0.2 * 60_000;
+    this.initialTimeMs = initialMinutes * 60_000;
     this.incrementMs = incrementSeconds * 1_000;
     this.baseExtraMs = extraSeconds * 1_000;
     this.accumulateExtra = accumulate;

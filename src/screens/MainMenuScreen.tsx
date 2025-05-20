@@ -15,7 +15,7 @@ const MainMenuScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Chess Clock</Text>
+      <Text style={styles.title}>Relógio</Text>
       <View style={styles.buttonContainer}>
         <Button
           title="Jogar"
