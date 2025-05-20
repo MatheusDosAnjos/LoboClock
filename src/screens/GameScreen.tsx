@@ -38,6 +38,10 @@ const GameScreen = () => {
     { inOvertime: false, movesMade: 0, movesRequired: 0 },
     { inOvertime: false, movesMade: 0, movesRequired: 0 },
   ]);
+  const [customStatus, setCustomStatus] = useState([
+    { inOvertime: false },
+    { inOvertime: false },
+  ]);
 
   // Initialize timers and listeners
   useEffect(() => {
@@ -93,6 +97,16 @@ const GameScreen = () => {
         setCanadianStatus([
           canadianStrategy.getOvertimeStatus(0),
           canadianStrategy.getOvertimeStatus(1),
+        ]);
+      }
+    }
+
+    if (strategy.constructor.name === 'Personalizado') {
+      const customStrategy = strategy as any;
+      if (customStrategy.inOvertime) {
+        setCustomStatus([
+          customStrategy.getOvertimeStatus(0),
+          customStrategy.getOvertimeStatus(1),
         ]);
       }
     }
@@ -163,8 +177,9 @@ const GameScreen = () => {
         return (
           <View style={styles.statusContainer}>
             <Text style={styles.statusText}>
-              Byo-Yomi: {status.periodsRemaining} period
-              {status.periodsRemaining !== 1 ? 's' : ''} left
+              Byo-Yomi: {status.periodsRemaining} período
+              {status.periodsRemaining !== 1 ? 's' : ''} restante
+              {status.periodsRemaining !== 1 ? 's' : ''}
             </Text>
           </View>
         );
@@ -177,13 +192,23 @@ const GameScreen = () => {
         return (
           <View style={styles.statusContainer}>
             <Text style={styles.statusText}>
-              Moves: {status.movesMade}/{status.movesRequired}
+              Jogadas: {status.movesMade}/{status.movesRequired}
             </Text>
           </View>
         );
       }
     }
 
+    if (strategy.constructor.name === 'Personalizado') {
+      const status = customStatus[player];
+      if (status.inOvertime) {
+        return (
+          <View style={styles.statusContainer}>
+            <Text style={styles.statusText}>OVERTIME</Text>
+          </View>
+        );
+      }
+    }
     return null;
   };
 

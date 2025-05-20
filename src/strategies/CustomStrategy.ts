@@ -3,15 +3,15 @@ import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
 type OvertimeType = 'none' | 'same' | 'custom';
 
 export class CustomStrategy implements TimerStrategy {
-  static readonly name = 'Personalizado Avançado';
+  static readonly name = 'Personalizado';
   static readonly description =
-    'Main time + increment + per move extra (accumulable) + optional overtime';
+    'Main time + increment + per move extra time (when main time runs out) + optional overtime';
 
   initialTimeMs: number;
   incrementMs: number; // per move
   baseExtraMs: number; // per‐move clock
   accumulateExtra: boolean;
-  overtimeType: OvertimeType;
+  overtimeMode: OvertimeType;
   otInitialMs: number;
   otIncrementMs: number;
   otBaseExtraMs: number;
@@ -22,15 +22,14 @@ export class CustomStrategy implements TimerStrategy {
   extraTimes = [0, 0];
   leftoverExtra = [0, 0];
   inOvertime = [false, false];
-  otTimes = [0, 0];
   currentPlayer = 0;
 
   constructor(
-    initialMinutes: number = 0,
+    initialMinutes: number = 5,
     incrementSeconds: number = 0,
     extraSeconds: number = 0,
     accumulate: boolean = false,
-    overtimeType: OvertimeType = 'none',
+    overtimeMode: OvertimeType = 'none',
     otInitialMinutes: number = 0,
     otIncrementSeconds: number = 0,
     otExtraSeconds: number = 0,
@@ -42,14 +41,14 @@ export class CustomStrategy implements TimerStrategy {
     this.baseExtraMs = extraSeconds * 1_000;
     this.accumulateExtra = accumulate;
 
-    this.overtimeType = overtimeType;
+    this.overtimeMode = overtimeMode;
 
-    if (overtimeType === 'none') {
+    if (overtimeMode === 'none') {
       this.otInitialMs = 0;
       this.otIncrementMs = 0;
       this.otBaseExtraMs = 0;
       this.otAccumulateExtra = false;
-    } else if (overtimeType === 'same') {
+    } else if (overtimeMode === 'same') {
       this.otInitialMs = this.initialTimeMs;
       this.otIncrementMs = this.incrementMs;
       this.otBaseExtraMs = this.baseExtraMs;
@@ -65,11 +64,6 @@ export class CustomStrategy implements TimerStrategy {
   }
 
   getRemainingTime(playerId: number): number {
-    // Handle overtime case first
-    if (this.inOvertime[playerId]) {
-      return this.otTimes[playerId];
-    }
-
     // If this player has main time, return that
     if (this.mainTimes[playerId] > 0) {
       return this.mainTimes[playerId];
@@ -79,7 +73,11 @@ export class CustomStrategy implements TimerStrategy {
     // For non-active player, we need to make sure to show the correct next-turn time
     if (playerId !== this.currentPlayer) {
       // Return what their extra time will be when it's their turn again
-      return this.baseExtraMs + this.leftoverExtra[playerId];
+      if (this.inOvertime[playerId]) {
+        return this.otBaseExtraMs + this.leftoverExtra[playerId];
+      } else {
+        return this.baseExtraMs + this.leftoverExtra[playerId];
+      }
     }
 
     // For current active player, return their current extra time
@@ -87,25 +85,16 @@ export class CustomStrategy implements TimerStrategy {
   }
 
   setRemainingTime(playerId: number, timeMs: number): void {
-    // Already in overtime - just update overtime time
-    if (this.inOvertime[playerId]) {
-      this.otTimes[playerId] = timeMs;
-      // Check if overtime has expired
-      if (timeMs <= 0) {
-        this.otTimes[playerId] = 0;
-      }
-      return;
-    }
-
     // Player has main time - update main time
     if (this.mainTimes[playerId] > 0) {
       this.mainTimes[playerId] = timeMs;
-      // When main time runs out, ALWAYS transition to extra time first
+      // When main time runs out, transition to extra time
       if (timeMs <= 0) {
         this.mainTimes[playerId] = 0;
-        // Set up the extra time regardless of overtime settings
-        this.extraTimes[playerId] =
-          this.baseExtraMs + this.leftoverExtra[playerId];
+        // Set up the extra time - use the appropriate base extra time
+        this.extraTimes[playerId] = this.inOvertime[playerId]
+          ? this.otBaseExtraMs
+          : this.baseExtraMs;
       }
       return;
     }
@@ -113,58 +102,71 @@ export class CustomStrategy implements TimerStrategy {
     // No main time left, using extra time
     this.extraTimes[playerId] = timeMs;
 
-    // If extra time has run out, consider transitioning to overtime
-    if (timeMs <= 0) {
-      this.extraTimes[playerId] = 0;
-      // Only enter overtime if it's enabled (not 'none')
-      if (this.overtimeType !== 'none') {
-        this.inOvertime[playerId] = true;
-        // Initialize overtime timers
-        const init =
-          this.overtimeType === 'same' ? this.initialTimeMs : this.otInitialMs;
-        this.otTimes[playerId] = init;
-      }
+    // If extra time runs out and we have overtime enabled, transition to overtime
+    if (
+      timeMs <= 0 &&
+      !this.inOvertime[playerId] &&
+      this.overtimeMode !== 'none'
+    ) {
+      this.startOvertime(playerId);
     }
+  }
+
+  startOvertime(playerId: number): void {
+    this.inOvertime[playerId] = true;
+    this.mainTimes[playerId] = this.otInitialMs;
+    this.extraTimes[playerId] = this.otBaseExtraMs;
+    this.leftoverExtra[playerId] = 0;
   }
 
   switchPlayer(): void {
     const p = this.currentPlayer;
-    // 1) stash leftover extra
+    // 1) stash leftover extra time based on accumulate setting
     const extraLeft = this.extraTimes[p];
-    this.leftoverExtra[p] = this.accumulateExtra ? extraLeft : 0;
+
+    // Use different accumulation rules based on whether player is in overtime
+    if (this.inOvertime[p]) {
+      this.leftoverExtra[p] = this.otAccumulateExtra ? extraLeft : 0;
+    } else {
+      this.leftoverExtra[p] = this.accumulateExtra ? extraLeft : 0;
+    }
 
     // 2) figure out if main was still >0 when we switched
     const hadMain = this.mainTimes[p] > 0;
 
     // 3) apply increment only if main was still running
-    if (this.incrementMs > 0 && hadMain && !this.inOvertime[p]) {
-      this.mainTimes[p] += this.incrementMs;
-    }
-    //   —or if you’re in overtime, apply OT increment logic
-    else if (this.incrementMs > 0 && this.inOvertime[p]) {
-      const inc =
-        this.overtimeType === 'same' ? this.incrementMs : this.otIncrementMs;
-      this.otTimes[p] += inc;
+    if (hadMain) {
+      if (this.incrementMs > 0 && !this.inOvertime[p]) {
+        this.mainTimes[p] += this.incrementMs;
+      } else if (this.otIncrementMs > 0 && this.inOvertime[p]) {
+        this.mainTimes[p] += this.otIncrementMs;
+      }
     }
 
     // 4) reset next player's extra clock
     const np = 1 - p;
-    this.extraTimes[np] = this.baseExtraMs + this.leftoverExtra[np];
+
+    if (this.inOvertime[np]) {
+      this.extraTimes[np] = this.otBaseExtraMs + this.leftoverExtra[np];
+    } else {
+      this.extraTimes[np] = this.baseExtraMs + this.leftoverExtra[np];
+    }
 
     // 5) flip active player
     this.currentPlayer = np;
   }
 
   isGameOver(): boolean {
-    // game over if both main & extra are zero and no overtime, or overtime expired
-    for (let i = 0; i < 2; i++) {
-      if (!this.inOvertime[i]) {
-        if (this.mainTimes[i] <= 0 && this.extraTimes[i] <= 0) return true;
-      } else {
-        if (this.otTimes[i] <= 0) return true;
-      }
-    }
-    return false;
+    // Game is over if a player has no main time AND no extra time
+    // And not eligible for overtime or already in overtime
+    return (
+      (this.mainTimes[0] <= 0 &&
+        this.extraTimes[0] <= 0 &&
+        (this.inOvertime[0] || this.overtimeMode === 'none')) ||
+      (this.mainTimes[1] <= 0 &&
+        this.extraTimes[1] <= 0 &&
+        (this.inOvertime[1] || this.overtimeMode === 'none'))
+    );
   }
 
   reset(): void {
@@ -172,8 +174,6 @@ export class CustomStrategy implements TimerStrategy {
     this.extraTimes = [this.baseExtraMs, this.baseExtraMs];
     this.leftoverExtra = [0, 0];
     this.inOvertime = [false, false];
-    this.otTimes = [this.otInitialMs, this.otInitialMs];
-
     this.currentPlayer = 0;
   }
 
@@ -182,76 +182,94 @@ export class CustomStrategy implements TimerStrategy {
       {
         name: 'initialMinutes',
         type: 'number',
-        label: 'Main (min)',
-        defaultValue: 0,
+        label: 'Tempo inicial (min)',
+        defaultValue: 5,
         minValue: 0,
+        maxValue: 180,
       },
       {
         name: 'incrementSeconds',
         type: 'number',
-        label: 'Increment (s)',
+        label: 'Incremento (s)',
         defaultValue: 0,
         minValue: 0,
+        maxValue: 60,
       },
       {
         name: 'extraSeconds',
         type: 'number',
-        label: 'Extra per move (s)',
+        label: 'Tempo extra por jogada (s)',
         defaultValue: 0,
         minValue: 0,
+        maxValue: 60,
       },
       {
         name: 'accumulate',
         type: 'select',
-        label: 'Accumulate extra',
+        label: 'Acumular tempo extra',
         defaultValue: false,
         options: [
-          { label: 'Off', value: false },
-          { label: 'On', value: true },
+          { label: 'Não', value: false },
+          { label: 'Sim', value: true },
         ],
       },
       {
-        name: 'overtimeType',
+        name: 'overtimeMode',
         type: 'select',
-        label: 'Overtime (0=none,1=same,2=custom)',
-        defaultValue: 0,
+        label: 'Modo de prorrogação',
+        defaultValue: 'none',
         options: [
-          { label: 'Desligado', value: 'none' },
-          { label: 'Igual principal', value: 'same' },
-          { label: 'Customizado', value: 'custom' },
+          { label: 'Sem prorrogação', value: 'none' },
+          { label: 'Mesmas configurações', value: 'same' },
+          { label: 'Personalizada', value: 'custom' },
         ],
       },
       {
         name: 'otInitialMinutes',
         type: 'number',
-        label: 'OT Main (min)',
-        defaultValue: 0,
+        label: 'Tempo de prorrogação (min)',
+        defaultValue: 5,
         minValue: 0,
+        maxValue: 180,
+        condition: { param: 'overtimeMode', value: 'custom' },
       },
       {
-        name: 'otIncrementSec',
+        name: 'otIncrementSeconds',
         type: 'number',
-        label: 'OT Increment (s)',
+        label: 'Incremento de prorrogação (s)',
         defaultValue: 0,
         minValue: 0,
+        maxValue: 60,
+        condition: { param: 'overtimeMode', value: 'custom' },
       },
       {
-        name: 'otExtraSec',
+        name: 'otExtraSeconds',
         type: 'number',
-        label: 'OT Extra (s)',
+        label: 'Tempo extra por jogada na prorrogação (s)',
         defaultValue: 0,
         minValue: 0,
+        maxValue: 60,
+        condition: { param: 'overtimeMode', value: 'custom' },
       },
       {
         name: 'otAccumulate',
         type: 'select',
-        label: 'OT Accumulate extra',
+        label: 'Acumular tempo extra na prorrogação',
         defaultValue: false,
         options: [
-          { label: 'Off', value: false },
-          { label: 'On', value: true },
+          { label: 'Não', value: false },
+          { label: 'Sim', value: true },
         ],
+        condition: { param: 'overtimeMode', value: 'custom' },
       },
     ];
+  }
+
+  getOvertimeStatus(playerId: number): {
+    inOvertime: boolean;
+  } {
+    return {
+      inOvertime: this.inOvertime[playerId],
+    };
   }
 }
