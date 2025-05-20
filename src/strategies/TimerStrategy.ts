@@ -14,9 +14,10 @@ export abstract class TimerStrategy {
 
 export interface TimerConfigParam {
   name: string;
-  type: 'number' | 'boolean';
+  type: 'number' | 'select';
   label: string;
   defaultValue: any;
   minValue?: number;
   maxValue?: number;
+  options?: { label: string; value: any }[];
 }

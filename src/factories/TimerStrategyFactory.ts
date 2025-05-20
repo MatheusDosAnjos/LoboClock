@@ -5,6 +5,7 @@ import { BronsteinDelayStrategy } from '../strategies/BronsteinDelayStrategy';
 import { HourglassStrategy } from '../strategies/HourglassStrategy';
 import { ByoYomiStrategy } from '../strategies/ByoYomiStrategy';
 import { CanadianOvertimeStrategy } from '../strategies/CanadianOvertimeStrategy';
+import { CustomStrategy } from '../strategies/CustomStrategy';
 
 export enum TimerType {
   CLASSICAL = 'classical',
@@ -13,6 +14,7 @@ export enum TimerType {
   HOURGLASS = 'hourglass',
   BYO_YOMI = 'byoYomi',
   CANADIAN = 'canadian',
+  CUSTOM = 'custom',
 }
 
 interface StrategyConstructor {
@@ -28,6 +30,7 @@ const strategyMap: Record<TimerType, StrategyConstructor> = {
   [TimerType.HOURGLASS]: HourglassStrategy,
   [TimerType.BYO_YOMI]: ByoYomiStrategy,
   [TimerType.CANADIAN]: CanadianOvertimeStrategy,
+  [TimerType.CUSTOM]: CustomStrategy,
 };
 
 export class TimerStrategyFactory {

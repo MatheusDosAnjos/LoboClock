@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Platform } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { TimerStrategy } from '../strategies/TimerStrategy';
 
 interface TimerConfigFormProps {
@@ -69,38 +70,49 @@ export const TimerConfigForm = ({
             <Text style={styles.paramLabel}>{param.label}</Text>
 
             <View style={styles.inputContainer}>
-              <TextInput
-                style={[styles.input, hasError && styles.inputError]}
-                value={
-                  config[param.name] !== undefined &&
-                  config[param.name] !== null
-                    ? config[param.name].toString()
-                    : ''
-                }
-                placeholder={param.defaultValue.toString()}
-                onChangeText={text => {
-                  // Allow empty text for editing
-                  if (text === '') {
-                    onChange(param.name, '');
-                    return;
+              {param.type === 'select' && param.options ? (
+                <Picker
+                  selectedValue={config[param.name]}
+                  onValueChange={value => onChange(param.name, value)}
+                  style={styles.picker}
+                >
+                  {param.options.map(opt => (
+                    <Picker.Item
+                      key={opt.value.toString()}
+                      label={opt.label}
+                      value={opt.value}
+                    />
+                  ))}
+                </Picker>
+              ) : (
+                <TextInput
+                  style={[styles.input, hasError && styles.inputError]}
+                  value={
+                    config[param.name] !== undefined &&
+                    config[param.name] !== null
+                      ? config[param.name].toString()
+                      : ''
                   }
+                  placeholder={param.defaultValue.toString()}
+                  onChangeText={text => {
+                    if (text === '') {
+                      onChange(param.name, '');
+                      return;
+                    }
+                    let value;
+                    if (param.type === 'number') {
+                      value = isNaN(parseInt(text, 10))
+                        ? text
+                        : parseInt(text, 10);
+                    } else {
+                      value = text;
+                    }
 
-                  // Convert to appropriate type
-                  let value;
-                  if (param.type === 'number') {
-                    // Parse number but don't convert to default if invalid
-                    value = isNaN(parseInt(text, 10))
-                      ? text
-                      : parseInt(text, 10);
-                  } else {
-                    value = text;
-                  }
-
-                  onChange(param.name, value);
-                }}
-                keyboardType={param.type === 'number' ? 'numeric' : 'default'}
-              />
-
+                    onChange(param.name, value);
+                  }}
+                  keyboardType={param.type === 'number' ? 'numeric' : 'default'}
+                />
+              )}
               {hasError && (
                 <Text style={styles.errorText}>{errors[param.name]}</Text>
               )}
@@ -146,5 +158,9 @@ const styles = StyleSheet.create({
     color: '#ff3b30',
     fontSize: 12,
     marginTop: 4,
+  },
+  picker: {
+    height: Platform.select({ ios: 200, android: 50 }),
+    width: '100%',
   },
 });
