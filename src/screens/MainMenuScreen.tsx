@@ -18,16 +18,16 @@ const MainMenuScreen = () => {
       <Text style={styles.title}>Chess Clock</Text>
       <View style={styles.buttonContainer}>
         <Button
-          title="Play"
+          title="Jogar"
           onPress={() => navigation.navigate('TimerSelection')}
         />
 
-        <Button title="Help" onPress={() => navigation.navigate('Help')} />
+        {/* <Button title="Help" onPress={() => navigation.navigate('Help')} /> */}
 
-        <Button
+        {/* <Button
           title="Settings"
           onPress={() => navigation.navigate('Settings')}
-        />
+        /> */}
       </View>
     </View>
   );
