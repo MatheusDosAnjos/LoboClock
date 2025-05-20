@@ -1,9 +1,9 @@
 export abstract class TimerStrategy {
   static readonly name: string;
   static readonly description: string;
-  
+
   initialTimeMs: number = 0;
-  
+
   abstract getRemainingTime(playerId: number): number;
   abstract setRemainingTime(playerId: number, timeMs: number): void;
   abstract switchPlayer(): void;
@@ -20,4 +20,5 @@ export interface TimerConfigParam {
   minValue?: number;
   maxValue?: number;
   options?: { label: string; value: any }[];
+  condition?: { param: string; value: any };
 }

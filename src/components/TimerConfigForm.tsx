@@ -28,6 +28,13 @@ export const TimerConfigForm = ({
     let isValid = true;
 
     params.forEach(param => {
+      if (
+        param.condition &&
+        config[param.condition.param] !== param.condition.value
+      ) {
+        return;
+      }
+
       const value = config[param.name];
 
       if (value === undefined || value === null || value === '') {
@@ -60,9 +67,17 @@ export const TimerConfigForm = ({
     return isValid;
   };
 
+  const shouldShowParam = param => {
+    if (!param.condition) return true;
+
+    return config[param.condition.param] === param.condition.value;
+  };
+
   return (
     <View style={styles.container}>
       {params.map(param => {
+        if (!shouldShowParam(param)) return null;
+
         const hasError = !!errors[param.name];
 
         return (
