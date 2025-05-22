@@ -5,11 +5,11 @@ type OvertimeType = 'none' | 'same' | 'custom';
 export class CustomStrategy implements TimerStrategy {
   static readonly name = 'Personalizado';
   static readonly description =
-    'Main time + increment + per move extra time (when main time runs out) + optional overtime';
+    'Cronômetro personalizável com tempo principal, incremento, tempo extra por jogada e configurações opcionais de overtime para maior flexibilidade.';
 
   initialTimeMs: number;
-  incrementMs: number; // per move
-  baseExtraMs: number; // per‐move clock
+  incrementMs: number;
+  baseExtraMs: number;
   accumulateExtra: boolean;
   overtimeMode: OvertimeType;
   otInitialMs: number;
@@ -272,3 +272,6 @@ export class CustomStrategy implements TimerStrategy {
     };
   }
 }
+
+// PERSONALIZADO: OPÇÃO PARA PASSAR TEMPO GASTO PARA UM JOGADOR PARA O OUTRO
+// QUANTIDADE DE OVERTIME PERSONALIZADO
