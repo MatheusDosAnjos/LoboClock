@@ -1,3 +1,5 @@
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
 
 export class ByoYomiStrategy implements TimerStrategy {
@@ -129,14 +131,34 @@ export class ByoYomiStrategy implements TimerStrategy {
     ];
   }
 
-  // Additional methods to provide UI feedback
-  getByoYomiStatus(playerId: number): {
-    inByoYomi: boolean;
-    periodsRemaining: number;
-  } {
-    return {
-      inByoYomi: this.inByoYomi[playerId],
-      periodsRemaining: this.periodsRemaining[playerId],
-    };
+  renderStatus(playerId: number): React.ReactNode {
+    const periodsRemaining = this.periodsRemaining[playerId];
+
+    if (this.inByoYomi[playerId]) {
+      return React.createElement(
+        View,
+        { style: styles.statusContainer },
+        React.createElement(
+          Text,
+          { style: styles.statusText },
+          `Byo-Yomi: ${periodsRemaining} período${periodsRemaining !== 1 ? 's' : ''} restante${periodsRemaining !== 1 ? 's' : ''}`,
+        ),
+      );
+    }
+
+    return null;
   }
 }
+
+const styles = StyleSheet.create({
+  statusContainer: {
+    marginTop: 10,
+    padding: 5,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 5,
+  },
+  statusText: {
+    fontSize: 14,
+    color: '#333',
+  },
+});

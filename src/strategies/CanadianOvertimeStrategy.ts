@@ -1,3 +1,5 @@
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
 
 export class CanadianOvertimeStrategy implements TimerStrategy {
@@ -130,16 +132,31 @@ export class CanadianOvertimeStrategy implements TimerStrategy {
     ];
   }
 
-  // Additional methods to provide UI feedback
-  getOvertimeStatus(playerId: number): {
-    inOvertime: boolean;
-    movesMade: number;
-    movesRequired: number;
-  } {
-    return {
-      inOvertime: this.inOvertime[playerId],
-      movesMade: this.movesMade[playerId],
-      movesRequired: this.movesRequired,
-    };
+  renderStatus(playerId: number): React.ReactNode {
+    if (this.inOvertime[playerId]) {
+      return React.createElement(
+        View,
+        { style: styles.statusContainer },
+        React.createElement(
+          Text,
+          { style: styles.statusText },
+          `Jogadas: ${this.movesMade[playerId]}/${this.movesRequired}`,
+        ),
+      );
+    }
+    return null;
   }
 }
+
+const styles = StyleSheet.create({
+  statusContainer: {
+    marginTop: 10,
+    padding: 5,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 5,
+  },
+  statusText: {
+    fontSize: 14,
+    color: '#333',
+  },
+});

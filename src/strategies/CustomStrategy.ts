@@ -1,3 +1,5 @@
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
 
 type OvertimeType = 'none' | 'same' | 'custom';
@@ -264,14 +266,29 @@ export class CustomStrategy implements TimerStrategy {
     ];
   }
 
-  getOvertimeStatus(playerId: number): {
-    inOvertime: boolean;
-  } {
-    return {
-      inOvertime: this.inOvertime[playerId],
-    };
+  renderStatus(playerId: number): React.ReactNode {
+    if (this.inOvertime[playerId]) {
+      return React.createElement(
+        View,
+        { style: styles.statusContainer },
+        React.createElement(Text, { style: styles.statusText }, 'EM OVERTIME'),
+      );
+    }
   }
 }
+
+const styles = StyleSheet.create({
+  statusContainer: {
+    marginTop: 10,
+    padding: 5,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 5,
+  },
+  statusText: {
+    fontSize: 14,
+    color: '#333',
+  },
+});
 
 // PERSONALIZADO: OPÇÃO PARA PASSAR TEMPO GASTO PARA UM JOGADOR PARA O OUTRO
 // QUANTIDADE DE OVERTIME PERSONALIZADO

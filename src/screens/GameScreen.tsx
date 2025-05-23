@@ -29,20 +29,6 @@ const GameScreen = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [animValue] = useState(new Animated.Value(0));
 
-  // States for special strategies
-  const [byoYomiStatus, setByoYomiStatus] = useState([
-    { inByoYomi: false, periodsRemaining: 0 },
-    { inByoYomi: false, periodsRemaining: 0 },
-  ]);
-  const [canadianStatus, setCanadianStatus] = useState([
-    { inOvertime: false, movesMade: 0, movesRequired: 0 },
-    { inOvertime: false, movesMade: 0, movesRequired: 0 },
-  ]);
-  const [customStatus, setCustomStatus] = useState([
-    { inOvertime: false },
-    { inOvertime: false },
-  ]);
-
   // Initialize timers and listeners
   useEffect(() => {
     const initialTimes = [
@@ -51,11 +37,9 @@ const GameScreen = () => {
     ];
     setTimes(initialTimes);
     setMoveCounts(gameController.getMoveCount());
-    updateSpecialStatuses();
 
     gameController.onTimeUpdate(newTimes => {
       setTimes(newTimes);
-      updateSpecialStatuses();
     });
 
     gameController.onMoveCountUpdate(newMoves => {
@@ -75,41 +59,6 @@ const GameScreen = () => {
       gameController.pause();
     };
   }, []);
-
-  // Update statuses for special strategies
-  const updateSpecialStatuses = () => {
-    const strategy = gameController.getCurrentStrategy();
-
-    if (strategy.constructor.name === 'Byo-Yomi') {
-      const byoYomiStrategy = strategy as any;
-      if (byoYomiStrategy.getByoYomiStatus) {
-        setByoYomiStatus([
-          byoYomiStrategy.getByoYomiStatus(0),
-          byoYomiStrategy.getByoYomiStatus(1),
-        ]);
-      }
-    }
-
-    if (strategy.constructor.name === 'Canadian Overtime') {
-      const canadianStrategy = strategy as any;
-      if (canadianStrategy.getOvertimeStatus) {
-        setCanadianStatus([
-          canadianStrategy.getOvertimeStatus(0),
-          canadianStrategy.getOvertimeStatus(1),
-        ]);
-      }
-    }
-
-    if (strategy.constructor.name === 'Personalizado') {
-      const customStrategy = strategy as any;
-      if (customStrategy.inOvertime) {
-        setCustomStatus([
-          customStrategy.getOvertimeStatus(0),
-          customStrategy.getOvertimeStatus(1),
-        ]);
-      }
-    }
-  };
 
   // Animate the active indicator
   useEffect(() => {
@@ -160,7 +109,6 @@ const GameScreen = () => {
       gameController.getCurrentStrategy().getRemainingTime(1),
     ]);
     setMoveCounts(gameController.getMoveCount());
-    updateSpecialStatuses();
 
     setCurrentPlayer(0);
     setIsPaused(true);
@@ -169,44 +117,8 @@ const GameScreen = () => {
 
   const renderSpecialStatus = player => {
     const strategy = gameController.getCurrentStrategy();
-
-    if (strategy.constructor.name === 'Byo-Yomi') {
-      const status = byoYomiStatus[player];
-      if (status.inByoYomi) {
-        return (
-          <View style={styles.statusContainer}>
-            <Text style={styles.statusText}>
-              Byo-Yomi: {status.periodsRemaining} período
-              {status.periodsRemaining !== 1 ? 's' : ''} restante
-              {status.periodsRemaining !== 1 ? 's' : ''}
-            </Text>
-          </View>
-        );
-      }
-    }
-
-    if (strategy.constructor.name === 'Canadian Overtime') {
-      const status = canadianStatus[player];
-      if (status.inOvertime) {
-        return (
-          <View style={styles.statusContainer}>
-            <Text style={styles.statusText}>
-              Jogadas: {status.movesMade}/{status.movesRequired}
-            </Text>
-          </View>
-        );
-      }
-    }
-
-    if (strategy.constructor.name === 'Personalizado') {
-      const status = customStatus[player];
-      if (status.inOvertime) {
-        return (
-          <View style={styles.statusContainer}>
-            <Text style={styles.statusText}>OVERTIME</Text>
-          </View>
-        );
-      }
+    if (typeof strategy.renderStatus === 'function') {
+      return strategy.renderStatus(player);
     }
     return null;
   };

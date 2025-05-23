@@ -23,11 +23,6 @@ const MainMenuScreen = () => {
         />
 
         {/* <Button title="Help" onPress={() => navigation.navigate('Help')} /> */}
-
-        {/* <Button
-          title="Settings"
-          onPress={() => navigation.navigate('Settings')}
-        /> */}
       </View>
     </View>
   );

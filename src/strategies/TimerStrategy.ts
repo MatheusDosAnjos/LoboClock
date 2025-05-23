@@ -10,6 +10,8 @@ export abstract class TimerStrategy {
   abstract isGameOver(): boolean;
   abstract reset(): void;
   abstract getConfigParams(): TimerConfigParam[];
+
+  renderStatus?(playerId: number): React.ReactNode;
 }
 
 export interface TimerConfigParam {
