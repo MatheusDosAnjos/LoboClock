@@ -2,14 +2,14 @@ import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
 
 export class ClassicalStrategy implements TimerStrategy {
   static readonly name = 'Clássico';
-  static readonly description = 'Cronômetro simples com contagem regressiva sem tempo adicional';
+  static readonly description =
+    'Cronômetro simples com contagem regressiva sem tempo adicional';
 
-  private times: number[] = [0, 0]; // Player 1 and 2 remaining time (ms)
-  private currentPlayer: number = 0;
   initialTimeMs: number;
+  private times: number[] = [0, 0];
 
-  constructor(initialTimeMinutes: number) {
-    this.initialTimeMs = initialTimeMinutes * 60 * 1000;
+  constructor(initialTimeMin: number) {
+    this.initialTimeMs = initialTimeMin * 60_000;
     this.reset();
   }
 
@@ -21,23 +21,20 @@ export class ClassicalStrategy implements TimerStrategy {
     this.times[playerId] = timeMs;
   }
 
-  switchPlayer(): void {
-    this.currentPlayer = 1 - this.currentPlayer; // Toggle between 0 and 1
-  }
+  switchPlayer(): void {}
 
   isGameOver(): boolean {
-    return this.times[0] <= 0 || this.times[1] <= 0;
+    return this.times.some(time => time <= 0);
   }
 
   reset(): void {
     this.times = [this.initialTimeMs, this.initialTimeMs];
-    this.currentPlayer = 0;
   }
 
   getConfigParams(): TimerConfigParam[] {
     return [
       {
-        name: 'initialTimeMinutes',
+        name: 'initialTimeMin',
         type: 'number',
         label: 'Tempo inicial (min)',
         defaultValue: 5,

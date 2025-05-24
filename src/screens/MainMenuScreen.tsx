@@ -21,6 +21,7 @@ const MainMenuScreen = () => {
           title="Jogar"
           onPress={() => navigation.navigate('TimerSelection')}
         />
+        <Button title="Sobre" onPress={() => navigation.navigate('About')} />
 
         {/* <Button title="Help" onPress={() => navigation.navigate('Help')} /> */}
       </View>
