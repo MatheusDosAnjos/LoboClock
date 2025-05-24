@@ -38,26 +38,22 @@ const GameScreen = () => {
     setTimes(initialTimes);
     setMoveCounts(gameController.getMoveCount());
 
-    gameController.onTimeUpdate(newTimes => {
-      setTimes(newTimes);
-    });
-
-    gameController.onMoveCountUpdate(newMoves => {
-      setMoveCounts(newMoves);
-    });
+    gameController.onTimeUpdate(newTimes => setTimes(newTimes));
+    gameController.onMoveCountUpdate(newMoves => setMoveCounts(newMoves));
 
     gameController.onGameOver(() => {
       const winner = times[0] <= 0 ? 'Jogador 2' : 'Jogador 1';
 
       Alert.alert('Fim de jogo', `Vencedor: ${winner}`, [
-        { text: 'New Game', onPress: handleReset },
-        { text: 'Main Menu', onPress: () => navigation.navigate('MainMenu') },
+        { text: 'Novo jogo', onPress: handleReset },
+        {
+          text: 'Menu principal',
+          onPress: () => navigation.navigate('MainMenu'),
+        },
       ]);
     });
 
-    return () => {
-      gameController.pause();
-    };
+    return () => gameController.pause();
   }, []);
 
   // Animate the active indicator
@@ -115,7 +111,7 @@ const GameScreen = () => {
     setGameStarted(false);
   };
 
-  const renderSpecialStatus = player => {
+  const renderSpecialStatus = (player: number) => {
     const strategy = gameController.getCurrentStrategy();
     if (typeof strategy.renderStatus === 'function') {
       return strategy.renderStatus(player);

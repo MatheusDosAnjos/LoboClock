@@ -15,10 +15,7 @@ export class GameController {
   private moveCountCallback: (moves: number[]) => void = () => {};
   private moveCount: number[] = [0, 0]; // Track moves for each player
 
-  constructor(
-    strategyType: TimerType = TimerType.CLASSICAL,
-    config?: Record<string, any>,
-  ) {
+  constructor(strategyType: TimerType, config?: Record<string, any>) {
     this.strategy = TimerStrategyFactory.createStrategy(strategyType, config);
     this.reset();
   }
@@ -125,12 +122,16 @@ export class GameController {
     this.moveCountCallback(this.moveCount);
   }
 
+  getCurrentStrategy(): TimerStrategy {
+    return this.strategy;
+  }
+
   getCurrentPlayer(): number {
     return this.activePlayer;
   }
 
   getMoveCount(): number[] {
-    return [...this.moveCount]; // Return a copy to prevent external modification
+    return [...this.moveCount];
   }
 
   onTimeUpdate(callback: (times: number[]) => void): void {
@@ -143,9 +144,5 @@ export class GameController {
 
   onGameOver(callback: () => void): void {
     this.gameOverCallback = callback;
-  }
-
-  getCurrentStrategy(): TimerStrategy {
-    return this.strategy;
   }
 }
