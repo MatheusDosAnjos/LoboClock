@@ -38,7 +38,7 @@ export const TimerConfigForm = ({
       const value = config[param.name];
 
       if (value === undefined || value === null || value === '') {
-        newErrors[param.name] = `${param.label} is required`;
+        newErrors[param.name] = `${param.label} é obrigatório`;
         isValid = false;
         return;
       }
@@ -47,13 +47,13 @@ export const TimerConfigForm = ({
         const numValue = Number(value);
 
         if (isNaN(numValue)) {
-          newErrors[param.name] = `${param.label} must be a valid number`;
+          newErrors[param.name] = `${param.label} precisa ser um número válido`;
           isValid = false;
         } else if (param.minValue !== undefined && numValue < param.minValue) {
-          newErrors[param.name] = `Minimum value is ${param.minValue}`;
+          newErrors[param.name] = `Valor mínimo é: ${param.minValue}`;
           isValid = false;
         } else if (param.maxValue !== undefined && numValue > param.maxValue) {
-          newErrors[param.name] = `Maximum value is ${param.maxValue}`;
+          newErrors[param.name] = `Valor máximo é: ${param.maxValue}`;
           isValid = false;
         }
       }
