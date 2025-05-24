@@ -1,21 +1,15 @@
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
+import { minutesToMs } from '../utils/timeFormatter';
 
-export class HourglassStrategy implements TimerStrategy {
+export class HourglassStrategy extends TimerStrategy {
   static readonly name = 'Ampulheta';
   static readonly description =
-    "Quando o relógio de um jogador está diminuindo, o relógio do outro jogador aumenta";
+    'Quando o relógio de um jogador está diminuindo, o relógio do outro jogador aumenta';
 
-  private times: number[] = [0, 0]; // Player 1 and 2 remaining time (ms)
   private currentPlayer: number = 0;
-  initialTimeMs: number;
 
-  constructor(initialTimeMinutes: number) {
-    this.initialTimeMs = initialTimeMinutes * 60 * 1000;
-    this.reset();
-  }
-
-  getRemainingTime(playerId: number): number {
-    return this.times[playerId];
+  constructor(initialTimeMin: number) {
+    super(minutesToMs(initialTimeMin));
   }
 
   setRemainingTime(playerId: number, timeMs: number): void {
@@ -39,10 +33,6 @@ export class HourglassStrategy implements TimerStrategy {
     this.currentPlayer = 1 - this.currentPlayer; // Toggle between 0 and 1
   }
 
-  isGameOver(): boolean {
-    return this.times[0] <= 0 || this.times[1] <= 0;
-  }
-
   reset(): void {
     this.times = [this.initialTimeMs, this.initialTimeMs];
     this.currentPlayer = 0;
@@ -51,7 +41,7 @@ export class HourglassStrategy implements TimerStrategy {
   getConfigParams(): TimerConfigParam[] {
     return [
       {
-        name: 'initialTimeMinutes',
+        name: 'initialTimeMin',
         type: 'number',
         label: 'Tempo inicial (min)',
         defaultValue: 3,

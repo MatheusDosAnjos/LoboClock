@@ -1,30 +1,29 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
+import { minutesToMs } from '../utils/timeFormatter';
 
-export class CanadianOvertimeStrategy implements TimerStrategy {
+export class CanadianOvertimeStrategy extends TimerStrategy {
   static readonly name = 'Canadian Overtime';
   static readonly description =
     'Após o fim do tempo principal, o jogador tem um tempo fixo para cada jogada durante o período extra.';
 
-  private mainTimes: number[] = [0, 0];
   private overtimeTimes: number[] = [0, 0];
   private inOvertime: boolean[] = [false, false];
   private movesMade: number[] = [0, 0];
   private justEnteredOvertime: boolean[] = [false, false];
 
   private currentPlayer: number = 0;
-  initialTimeMs: number;
   private overtimeMs: number;
   private movesRequired: number;
 
   constructor(
-    initialTimeMinutes: number,
-    overtimeMinutes: number,
+    initialTimeMin: number,
+    overtimeMin: number,
     movesRequired: number,
   ) {
-    this.initialTimeMs = initialTimeMinutes * 60 * 1000;
-    this.overtimeMs = overtimeMinutes * 60 * 1000;
+    super(minutesToMs(initialTimeMin));
+    this.overtimeMs = minutesToMs(overtimeMin);
     this.movesRequired = movesRequired;
     this.reset();
   }
@@ -33,17 +32,17 @@ export class CanadianOvertimeStrategy implements TimerStrategy {
     // Return overtime time if in overtime, otherwise main time
     return this.inOvertime[playerId]
       ? this.overtimeTimes[playerId]
-      : this.mainTimes[playerId];
+      : this.times[playerId];
   }
 
   setRemainingTime(playerId: number, timeMs: number): void {
     if (!this.inOvertime[playerId]) {
       // Player is using main time
-      this.mainTimes[playerId] = timeMs;
+      this.times[playerId] = timeMs;
 
       // Check if main time has expired and we need to enter overtime
-      if (this.mainTimes[playerId] <= 0) {
-        this.mainTimes[playerId] = 0;
+      if (this.times[playerId] <= 0) {
+        this.times[playerId] = 0;
         this.inOvertime[playerId] = true;
         this.movesMade[playerId] = 0;
         this.overtimeTimes[playerId] = this.overtimeMs;
@@ -87,15 +86,14 @@ export class CanadianOvertimeStrategy implements TimerStrategy {
   }
 
   isGameOver(): boolean {
-    // Game is over if either player has used all main time and ran out of overtime
-    return (
-      (this.inOvertime[0] && this.overtimeTimes[0] <= 0) ||
-      (this.inOvertime[1] && this.overtimeTimes[1] <= 0)
+    // Game is over if any player has entered overtime and their overtime time has run out
+    return this.inOvertime.some(
+      (inOT, playerId) => inOT && this.overtimeTimes[playerId] <= 0,
     );
   }
 
   reset(): void {
-    this.mainTimes = [this.initialTimeMs, this.initialTimeMs];
+    this.times = [this.initialTimeMs, this.initialTimeMs];
     this.overtimeTimes = [this.overtimeMs, this.overtimeMs];
     this.inOvertime = [false, false];
     this.movesMade = [0, 0];
@@ -106,7 +104,7 @@ export class CanadianOvertimeStrategy implements TimerStrategy {
   getConfigParams(): TimerConfigParam[] {
     return [
       {
-        name: 'initialTimeMinutes',
+        name: 'initialTimeMin',
         type: 'number',
         label: 'Tempo inicial (min)',
         defaultValue: 25,
@@ -114,7 +112,7 @@ export class CanadianOvertimeStrategy implements TimerStrategy {
         maxValue: 180,
       },
       {
-        name: 'overtimeMinutes',
+        name: 'overtimeMin',
         type: 'number',
         label: 'Tempo extra (min)',
         defaultValue: 5,

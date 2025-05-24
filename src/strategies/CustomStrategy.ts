@@ -1,46 +1,51 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
+import { minutesToMs } from '../utils/timeFormatter';
 
 type OvertimeType = 'none' | 'same' | 'custom';
 
-export class CustomStrategy implements TimerStrategy {
+export class CustomStrategy extends TimerStrategy {
   static readonly name = 'Personalizado';
   static readonly description =
     'Cronômetro personalizável com tempo principal, incremento, tempo extra por jogada e configurações opcionais de overtime para maior flexibilidade.';
 
-  initialTimeMs: number;
   incrementMs: number;
   baseExtraMs: number;
   accumulateExtra: boolean;
+  transferMainTime: boolean;
   overtimeMode: OvertimeType;
   otInitialMs: number;
   otIncrementMs: number;
   otBaseExtraMs: number;
   otAccumulateExtra: boolean;
+  otTransferMainTime: boolean;
 
   // state
-  mainTimes = [0, 0];
   extraTimes = [0, 0];
   leftoverExtra = [0, 0];
   inOvertime = [false, false];
   currentPlayer = 0;
+  turnStartMainTime = 0;
 
   constructor(
     initialMinutes: number = 5,
     incrementSeconds: number = 0,
     extraSeconds: number = 0,
     accumulate: boolean = false,
+    transferMainTime: boolean = false,
     overtimeMode: OvertimeType = 'none',
     otInitialMinutes: number = 0,
     otIncrementSeconds: number = 0,
     otExtraSeconds: number = 0,
     otAccumulate: boolean = false,
+    otTransferMainTime: boolean = false,
   ) {
-    this.initialTimeMs = initialMinutes * 60_000;
+    super(minutesToMs(initialMinutes));
     this.incrementMs = incrementSeconds * 1_000;
     this.baseExtraMs = extraSeconds * 1_000;
     this.accumulateExtra = accumulate;
+    this.transferMainTime = transferMainTime;
 
     this.overtimeMode = overtimeMode;
 
@@ -49,16 +54,19 @@ export class CustomStrategy implements TimerStrategy {
       this.otIncrementMs = 0;
       this.otBaseExtraMs = 0;
       this.otAccumulateExtra = false;
+      this.otTransferMainTime = false;
     } else if (overtimeMode === 'same') {
       this.otInitialMs = this.initialTimeMs;
       this.otIncrementMs = this.incrementMs;
       this.otBaseExtraMs = this.baseExtraMs;
       this.otAccumulateExtra = this.accumulateExtra;
+      this.otTransferMainTime = this.transferMainTime;
     } else {
       this.otInitialMs = otInitialMinutes * 60_000;
       this.otIncrementMs = otIncrementSeconds * 1_000;
       this.otBaseExtraMs = otExtraSeconds * 1_000;
       this.otAccumulateExtra = otAccumulate;
+      this.otTransferMainTime = otTransferMainTime;
     }
 
     this.reset();
@@ -66,8 +74,8 @@ export class CustomStrategy implements TimerStrategy {
 
   getRemainingTime(playerId: number): number {
     // If this player has main time, return that
-    if (this.mainTimes[playerId] > 0) {
-      return this.mainTimes[playerId];
+    if (this.times[playerId] > 0) {
+      return this.times[playerId];
     }
 
     // If player has no main time, calculate their proper extra time
@@ -87,11 +95,11 @@ export class CustomStrategy implements TimerStrategy {
 
   setRemainingTime(playerId: number, timeMs: number): void {
     // Player has main time - update main time
-    if (this.mainTimes[playerId] > 0) {
-      this.mainTimes[playerId] = timeMs;
+    if (this.times[playerId] > 0) {
+      this.times[playerId] = timeMs;
       // When main time runs out, transition to extra time
       if (timeMs <= 0) {
-        this.mainTimes[playerId] = 0;
+        this.times[playerId] = 0;
         // Set up the extra time - use the appropriate base extra time
         this.extraTimes[playerId] = this.inOvertime[playerId]
           ? this.otBaseExtraMs
@@ -115,13 +123,25 @@ export class CustomStrategy implements TimerStrategy {
 
   startOvertime(playerId: number): void {
     this.inOvertime[playerId] = true;
-    this.mainTimes[playerId] = this.otInitialMs;
+    this.times[playerId] = this.otInitialMs;
     this.extraTimes[playerId] = this.otBaseExtraMs;
     this.leftoverExtra[playerId] = 0;
+    // Reset turn start time tracking for overtime
+    if (playerId === this.currentPlayer) {
+      this.turnStartMainTime = this.times[playerId];
+    }
   }
 
   switchPlayer(): void {
     const p = this.currentPlayer;
+    const np = 1 - p;
+
+    // Calculate actual time spent from main time reduction (more accurate)
+    let actualTimeSpent = 0;
+    if (this.turnStartMainTime > 0 && this.times[p] >= 0) {
+      actualTimeSpent = Math.max(0, this.turnStartMainTime - this.times[p]);
+    }
+
     // 1) stash leftover extra time based on accumulate setting
     const extraLeft = this.extraTimes[p];
 
@@ -133,49 +153,63 @@ export class CustomStrategy implements TimerStrategy {
     }
 
     // 2) figure out if main was still >0 when we switched
-    const hadMain = this.mainTimes[p] > 0;
+    const hadMain = this.times[p] > 0 || this.turnStartMainTime > 0;
 
     // 3) apply increment only if main was still running
-    if (hadMain) {
+    if (hadMain && this.times[p] > 0) {
       if (this.incrementMs > 0 && !this.inOvertime[p]) {
-        this.mainTimes[p] += this.incrementMs;
+        this.times[p] += this.incrementMs;
       } else if (this.otIncrementMs > 0 && this.inOvertime[p]) {
-        this.mainTimes[p] += this.otIncrementMs;
+        this.times[p] += this.otIncrementMs;
       }
     }
 
-    // 4) reset next player's extra clock
-    const np = 1 - p;
+    // 4) Transfer time feature - only applies to main time
+    if (actualTimeSpent > 0 && hadMain) {
+      const shouldTransfer = this.inOvertime[p]
+        ? this.otTransferMainTime
+        : this.transferMainTime;
 
+      if (shouldTransfer) {
+        // Only transfer if the other player still has main time
+        if (this.times[np] > 0) {
+          this.times[np] += actualTimeSpent;
+        }
+      }
+    }
+
+    // 5) reset next player's extra clock
     if (this.inOvertime[np]) {
       this.extraTimes[np] = this.otBaseExtraMs + this.leftoverExtra[np];
     } else {
       this.extraTimes[np] = this.baseExtraMs + this.leftoverExtra[np];
     }
 
-    // 5) flip active player
+    // 6) flip active player and record turn start time
     this.currentPlayer = np;
+    this.turnStartMainTime = this.times[np]; // Track main time at start of new turn
   }
 
   isGameOver(): boolean {
     // Game is over if a player has no main time AND no extra time
     // And not eligible for overtime or already in overtime
     return (
-      (this.mainTimes[0] <= 0 &&
+      (this.times[0] <= 0 &&
         this.extraTimes[0] <= 0 &&
         (this.inOvertime[0] || this.overtimeMode === 'none')) ||
-      (this.mainTimes[1] <= 0 &&
+      (this.times[1] <= 0 &&
         this.extraTimes[1] <= 0 &&
         (this.inOvertime[1] || this.overtimeMode === 'none'))
     );
   }
 
   reset(): void {
-    this.mainTimes = [this.initialTimeMs, this.initialTimeMs];
+    this.times = [this.initialTimeMs, this.initialTimeMs];
     this.extraTimes = [this.baseExtraMs, this.baseExtraMs];
     this.leftoverExtra = [0, 0];
     this.inOvertime = [false, false];
     this.currentPlayer = 0;
+    this.turnStartMainTime = this.initialTimeMs; // Initialize turn start main time
   }
 
   getConfigParams(): TimerConfigParam[] {
@@ -208,6 +242,16 @@ export class CustomStrategy implements TimerStrategy {
         name: 'accumulate',
         type: 'select',
         label: 'Acumular tempo extra',
+        defaultValue: false,
+        options: [
+          { label: 'Não', value: false },
+          { label: 'Sim', value: true },
+        ],
+      },
+      {
+        name: 'transferMainTime',
+        type: 'select',
+        label: 'Transferir tempo gasto (tempo principal)',
         defaultValue: false,
         options: [
           { label: 'Não', value: false },
@@ -256,6 +300,17 @@ export class CustomStrategy implements TimerStrategy {
         name: 'otAccumulate',
         type: 'select',
         label: 'Acumular tempo extra OT',
+        defaultValue: false,
+        options: [
+          { label: 'Não', value: false },
+          { label: 'Sim', value: true },
+        ],
+        condition: { param: 'overtimeMode', value: 'custom' },
+      },
+      {
+        name: 'otTransferMainTime',
+        type: 'select',
+        label: 'Transferir tempo gasto (overtime)',
         defaultValue: false,
         options: [
           { label: 'Não', value: false },

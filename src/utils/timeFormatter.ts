@@ -30,3 +30,21 @@ export function formatTime(timeMs: number): string {
 function padZero(num: number): string {
   return num < 10 ? `0${num}` : `${num}`;
 }
+
+/**
+ * Converts minutes to milliseconds
+ * @param minutes Time in minutes
+ * @returns Time in milliseconds
+ */
+export function minutesToMs(minutes: number): number {
+  return minutes * 60_000;
+}
+
+/**
+ * Converts seconds to milliseconds
+ * @param seconds Time in seconds
+ * @returns Time in milliseconds
+ */
+export function secondsToMs(seconds: number): number {
+  return seconds * 1000;
+}

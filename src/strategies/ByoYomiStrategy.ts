@@ -1,30 +1,29 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
+import { minutesToMs, secondsToMs } from '../utils/timeFormatter';
 
-export class ByoYomiStrategy implements TimerStrategy {
+export class ByoYomiStrategy extends TimerStrategy {
   static readonly name = 'Byo-Yomi';
   static readonly description =
     'Após o tempo principal acabar, o jogador tem períodos fixos para cada jogada';
 
-  private mainTimes: number[] = [0, 0];
   private byoYomiTimes: number[] = [0, 0];
   private inByoYomi: boolean[] = [false, false];
   private periodsRemaining: number[] = [0, 0];
   private lastSwitchInByoYomi: boolean[] = [false, false];
 
   private currentPlayer: number = 0;
-  initialTimeMs: number;
   private byoYomiPeriodMs: number;
   private numPeriods: number;
 
   constructor(
-    initialTimeMinutes: number = 30,
-    byoYomiPeriodSeconds: number = 30,
-    numPeriods: number = 5,
+    initialTimeMin: number,
+    periodTimeSec: number,
+    numPeriods: number,
   ) {
-    this.initialTimeMs = initialTimeMinutes * 60 * 1000;
-    this.byoYomiPeriodMs = byoYomiPeriodSeconds * 1000;
+    super(minutesToMs(initialTimeMin));
+    this.byoYomiPeriodMs = secondsToMs(periodTimeSec);
     this.numPeriods = numPeriods;
     this.reset();
   }
@@ -32,17 +31,17 @@ export class ByoYomiStrategy implements TimerStrategy {
   getRemainingTime(playerId: number): number {
     return this.inByoYomi[playerId]
       ? this.byoYomiTimes[playerId]
-      : this.mainTimes[playerId];
+      : this.times[playerId];
   }
 
   setRemainingTime(playerId: number, timeMs: number): void {
     if (!this.inByoYomi[playerId]) {
       // Player is using main time
-      this.mainTimes[playerId] = timeMs;
+      this.times[playerId] = timeMs;
 
       // Check if main time has expired and we need to enter byo-yomi
-      if (this.mainTimes[playerId] <= 0) {
-        this.mainTimes[playerId] = 0;
+      if (this.times[playerId] <= 0) {
+        this.times[playerId] = 0;
         this.inByoYomi[playerId] = true;
         this.periodsRemaining[playerId] = this.numPeriods;
         this.byoYomiTimes[playerId] = this.byoYomiPeriodMs;
@@ -94,7 +93,7 @@ export class ByoYomiStrategy implements TimerStrategy {
   }
 
   reset(): void {
-    this.mainTimes = [this.initialTimeMs, this.initialTimeMs];
+    this.times = [this.initialTimeMs, this.initialTimeMs];
     this.byoYomiTimes = [this.byoYomiPeriodMs, this.byoYomiPeriodMs];
     this.inByoYomi = [false, false];
     this.periodsRemaining = [this.numPeriods, this.numPeriods];
@@ -105,7 +104,7 @@ export class ByoYomiStrategy implements TimerStrategy {
   getConfigParams(): TimerConfigParam[] {
     return [
       {
-        name: 'initialTimeMinutes',
+        name: 'initialTimeMin',
         type: 'number',
         label: 'Tempo inicial (min)',
         defaultValue: 30,
@@ -113,7 +112,7 @@ export class ByoYomiStrategy implements TimerStrategy {
         maxValue: 180,
       },
       {
-        name: 'byoYomiPeriodSeconds',
+        name: 'periodTimeSec',
         type: 'number',
         label: 'Tempo do periodo (s)',
         defaultValue: 30,

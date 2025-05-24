@@ -1,17 +1,46 @@
-export abstract class TimerStrategy {
+import React from 'react';
+
+export interface ITimerStrategy {
+  getRemainingTime(playerId: number): number;
+  setRemainingTime(playerId: number, timeMs: number): void;
+  switchPlayer?(): void;
+  isGameOver(): boolean;
+  reset(): void;
+  getConfigParams(): TimerConfigParam[];
+  renderStatus?(playerId: number): React.ReactNode;
+}
+
+export abstract class TimerStrategy implements ITimerStrategy {
   static readonly name: string;
   static readonly description: string;
 
-  initialTimeMs: number = 0;
+  protected initialTimeMs: number = 0;
+  protected times: number[] = [0, 0];
 
-  abstract getRemainingTime(playerId: number): number;
-  abstract setRemainingTime(playerId: number, timeMs: number): void;
-  abstract switchPlayer(): void;
-  abstract isGameOver(): boolean;
-  abstract reset(): void;
+  constructor(initialTimeMs: number) {
+    this.initialTimeMs = initialTimeMs;
+    this.reset();
+  }
+
   abstract getConfigParams(): TimerConfigParam[];
 
-  renderStatus?(playerId: number): React.ReactNode;
+  getRemainingTime(playerId: number): number {
+    return this.times[playerId];
+  }
+
+  setRemainingTime(playerId: number, timeMs: number): void {
+    this.times[playerId] = timeMs;
+  }
+
+  switchPlayer(): void {}
+
+  isGameOver(): boolean {
+    return this.times.some(time => time <= 0);
+  }
+
+  reset(): void {
+    this.times = [this.initialTimeMs, this.initialTimeMs];
+  }
 }
 
 export interface TimerConfigParam {

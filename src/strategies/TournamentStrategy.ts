@@ -1,23 +1,19 @@
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
+import { minutesToMs, secondsToMs } from '../utils/timeFormatter';
 
-export class TournamentStrategy implements TimerStrategy {
+export class TournamentStrategy extends TimerStrategy {
   static readonly name = 'Torneio';
   static readonly description =
     'Controle de tempo em fases - típico de torneios profissionais';
 
   // Main state
-  private times: number[] = [0, 0];
   private currentPlayer: number = 0;
   private movesMade: number[] = [0, 0];
   private currentPhase: number[] = [1, 1]; // 1, 2, or 3
   private justChangedPhase: boolean[] = [false, false];
 
-  // Configuration
-  initialTimeMs: number = 0; // This is required by TimerStrategy
-
   // Phase 1 settings
   private phase1Moves: number;
-  private phase1TimeMs: number;
   private phase1IncrementMs: number;
 
   // Phase 2 settings
@@ -29,49 +25,32 @@ export class TournamentStrategy implements TimerStrategy {
   private phase3TimeMs: number;
   private phase3IncrementMs: number;
 
-  // Optional delay applied to all phases
-  private delayMs: number;
-
   constructor(
-    phase1Minutes: number = 90,
-    phase1Moves: number = 40,
-    phase1IncrementSeconds: number = 0,
-    phase2Minutes: number = 30,
-    phase2Moves: number = 20,
-    phase2IncrementSeconds: number = 0,
-    phase3Minutes: number = 15,
-    phase3IncrementSeconds: number = 30,
+    phase1Min: number,
+    phase1Moves: number,
+    phase1IncrementSec: number,
+    phase2Min: number,
+    phase2Moves: number,
+    phase2IncrementSec: number,
+    phase3Min: number,
+    phase3IncrementSec: number,
   ) {
-    // Convert all time values to milliseconds
-    this.phase1TimeMs = phase1Minutes * 60 * 1000;
+    super(minutesToMs(phase1Min));
     this.phase1Moves = phase1Moves;
-    this.phase1IncrementMs = phase1IncrementSeconds * 1000;
+    this.phase1IncrementMs = secondsToMs(phase1IncrementSec);
 
-    this.phase2TimeMs = phase2Minutes * 60 * 1000;
+    this.phase2TimeMs = minutesToMs(phase2Min);
     this.phase2Moves = phase2Moves;
-    this.phase2IncrementMs = phase2IncrementSeconds * 1000;
+    this.phase2IncrementMs = secondsToMs(phase2IncrementSec);
 
-    this.phase3TimeMs = phase3Minutes * 60 * 1000;
-    this.phase3IncrementMs = phase3IncrementSeconds * 1000;
-
-    this.initialTimeMs = this.phase1TimeMs;
+    this.phase3TimeMs = minutesToMs(phase3Min);
+    this.phase3IncrementMs = secondsToMs(phase3IncrementSec);
 
     this.reset();
   }
 
-  getRemainingTime(playerId: number): number {
-    return this.times[playerId];
-  }
-
-  setRemainingTime(playerId: number, timeMs: number): void {
-    this.times[playerId] = timeMs;
-  }
-
   switchPlayer(): void {
     const previousPlayer = this.currentPlayer;
-
-    // Apply delay compensation logic if applicable
-    // This would be similar to Bronstein delay logic if delayMs > 0
 
     // Apply increment based on the current phase
     if (this.currentPhase[previousPlayer] === 1) {
@@ -116,12 +95,8 @@ export class TournamentStrategy implements TimerStrategy {
     }
   }
 
-  isGameOver(): boolean {
-    return this.times[0] <= 0 || this.times[1] <= 0;
-  }
-
   reset(): void {
-    this.times = [this.phase1TimeMs, this.phase1TimeMs];
+    this.times = [this.initialTimeMs, this.initialTimeMs];
     this.movesMade = [0, 0];
     this.currentPhase = [1, 1];
     this.justChangedPhase = [false, false];
@@ -131,7 +106,7 @@ export class TournamentStrategy implements TimerStrategy {
   getConfigParams(): TimerConfigParam[] {
     return [
       {
-        name: 'phase1Minutes',
+        name: 'phase1Min',
         type: 'number',
         label: 'Tempo fase 1 (min)',
         defaultValue: 90,
@@ -147,7 +122,7 @@ export class TournamentStrategy implements TimerStrategy {
         maxValue: 100,
       },
       {
-        name: 'phase1IncrementSeconds',
+        name: 'phase1IncrementSec',
         type: 'number',
         label: 'Incremento fase 1 (s)',
         defaultValue: 0,
@@ -155,7 +130,7 @@ export class TournamentStrategy implements TimerStrategy {
         maxValue: 60,
       },
       {
-        name: 'phase2Minutes',
+        name: 'phase2Min',
         type: 'number',
         label: 'Tempo fase 2 (min)',
         defaultValue: 30,
@@ -171,7 +146,7 @@ export class TournamentStrategy implements TimerStrategy {
         maxValue: 100,
       },
       {
-        name: 'phase2IncrementSeconds',
+        name: 'phase2IncrementSec',
         type: 'number',
         label: 'Incremento fase 2 (s)',
         defaultValue: 0,
@@ -179,7 +154,7 @@ export class TournamentStrategy implements TimerStrategy {
         maxValue: 60,
       },
       {
-        name: 'phase3Minutes',
+        name: 'phase3Min',
         type: 'number',
         label: 'Tempo fase 3 (min)',
         defaultValue: 15,
@@ -187,7 +162,7 @@ export class TournamentStrategy implements TimerStrategy {
         maxValue: 180,
       },
       {
-        name: 'phase3IncrementSeconds',
+        name: 'phase3IncrementSec',
         type: 'number',
         label: 'Incremento fase 3 (s)',
         defaultValue: 30,
