@@ -12,9 +12,8 @@ import {
 import { useRoute, useNavigation, NavigationProp } from '@react-navigation/native';
 import { GameController } from '../controllers/GameController';
 import { formatTime } from '../utils/timeFormatter';
-import { TimerType } from '../factories/TimerStrategyFactory';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 const GameScreen = () => {
   const route = useRoute();
@@ -42,8 +41,9 @@ const GameScreen = () => {
     { inOvertime: false, movesMade: 0, movesRequired: 0 },
   ]);
 
-  const playerLabels = playerNames ?? ['Player 1', 'Player 2'];
+  const playerLabels = playerNames ?? ['Jogador 1', 'Jogador 2'];
 
+  // Initialize timers and listeners
   useEffect(() => {
     const initialTimes = [
       gameController.getCurrentStrategy().getRemainingTime(0),
@@ -51,30 +51,24 @@ const GameScreen = () => {
     ];
     setTimes(initialTimes);
     setMoveCounts(gameController.getMoveCount());
-    updateSpecialStatuses();
 
-    gameController.onTimeUpdate(newTimes => {
-      setTimes(newTimes);
-      updateSpecialStatuses();
-    });
-
-    gameController.onMoveCountUpdate(newMoves => {
-      setMoveCounts(newMoves);
-    });
+    gameController.onTimeUpdate(newTimes => setTimes(newTimes));
+    gameController.onMoveCountUpdate(newMoves => setMoveCounts(newMoves));
 
     gameController.onGameOver(() => {
       const winner = times[0] <= 0 ? playerLabels[1] : playerLabels[0];
       const winnerMoves = times[0] <= 0 ? moveCounts[1] : moveCounts[0];
 
-      Alert.alert('Game Over', `${winner} wins!\nMoves made: ${winnerMoves}`, [
-        { text: 'New Game', onPress: handleReset },
-        { text: 'Main Menu', onPress: () => navigation.navigate('MainMenu') },
+      Alert.alert('Fim de jogo', `Vencedor: ${winner}`, [
+        { text: 'Novo jogo', onPress: handleReset },
+        {
+          text: 'Menu principal',
+          onPress: () => navigation.navigate('MainMenu'),
+        },
       ]);
     });
 
-    return () => {
-      gameController.pause();
-    };
+    return () => gameController.pause();
   }, []);
 
   const updateSpecialStatuses = () => {
@@ -101,6 +95,7 @@ const GameScreen = () => {
     }
   };
 
+  // Animate the active indicator
   useEffect(() => {
     Animated.timing(animValue, {
       toValue: currentPlayer,
@@ -156,12 +151,18 @@ const GameScreen = () => {
   const renderSpecialStatus = (player: number) => {
     const strategy = gameController.getCurrentStrategy();
 
+    // First check for custom render function in strategy
+    if (typeof strategy.renderStatus === 'function') {
+      return strategy.renderStatus(player);
+    }
+
+    // Fallback to specific strategy rendering
     if (strategy.name === 'Byo-Yomi') {
       const status = byoYomiStatus[player];
       if (status.inByoYomi) {
         return (
           <Text style={styles.statusText}>
-            Byo-Yomi: {status.periodsRemaining} period{status.periodsRemaining !== 1 ? 's' : ''} left
+            Byo-Yomi: {status.periodsRemaining} período{status.periodsRemaining !== 1 ? 's' : ''} restante{status.periodsRemaining !== 1 ? 's' : ''}
           </Text>
         );
       }
@@ -172,12 +173,11 @@ const GameScreen = () => {
       if (status.inOvertime) {
         return (
           <Text style={styles.statusText}>
-            Moves: {status.movesMade}/{status.movesRequired}
+            Jogadas: {status.movesMade}/{status.movesRequired}
           </Text>
         );
       }
     }
-
     return null;
   };
 
@@ -258,7 +258,7 @@ const GameScreen = () => {
             {renderPlayerClock(1)}
             <View style={styles.mobileControls}>
               <TouchableOpacity style={styles.controlButton} onPress={handlePauseToggle}>
-                <Text style={styles.controlText}>{isPaused ? 'Start' : 'Pause'}</Text>
+                <Text style={styles.controlText}>{isPaused ? 'Iniciar' : 'Pausar'}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.controlButton} onPress={handleReset}>
                 <Text style={styles.controlText}>Reset</Text>
@@ -267,7 +267,7 @@ const GameScreen = () => {
                 style={styles.controlButton}
                 onPress={() => navigation.navigate('TimerSelection')}
               >
-                <Text style={styles.controlText}>Change Timer</Text>
+                <Text style={styles.controlText}>Trocar timer</Text>
               </TouchableOpacity>
             </View>
             {renderPlayerClock(0)}

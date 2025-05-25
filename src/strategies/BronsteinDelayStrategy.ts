@@ -1,24 +1,20 @@
 import { TimerStrategy, TimerConfigParam } from './TimerStrategy';
+import { minutesToMs, secondsToMs } from '../utils/timeFormatter';
 
-export class BronsteinDelayStrategy implements TimerStrategy {
-  name = 'Bronstein Delay';
-  description = 'Adds back the time used for a move, up to the maximum delay';
+export class BronsteinDelayStrategy extends TimerStrategy {
+  static readonly name = 'Atraso Bronstein';
+  static readonly description =
+    'Adiciona de volta o tempo usado para um movimento, até o atraso máximo';
 
-  private times: number[] = [0, 0]; // Player 1 and 2 remaining time (ms)
-  private moveStartTimes: number[] = [0, 0]; // Time at start of player's move
+  private moveStartTimes: number[] = [0, 0];
   private currentPlayer: number = 0;
-  initialTimeMs: number;
   private delayMs: number;
-  private isFirstUpdate: boolean[] = [true, true]; // Track first update for each player
+  private isFirstUpdate: boolean[] = [true, true];
 
-  constructor(initialTimeMinutes: number = 5, delaySeconds: number = 3) {
-    this.initialTimeMs = initialTimeMinutes * 60 * 1000;
-    this.delayMs = delaySeconds * 1000;
+  constructor(initialTimeMin: number, delaySec: number) {
+    super(minutesToMs(initialTimeMin));
+    this.delayMs = secondsToMs(delaySec);
     this.reset();
-  }
-
-  getRemainingTime(playerId: number): number {
-    return this.times[playerId];
   }
 
   setRemainingTime(playerId: number, timeMs: number): void {
@@ -52,10 +48,6 @@ export class BronsteinDelayStrategy implements TimerStrategy {
     this.isFirstUpdate[this.currentPlayer] = true;
   }
 
-  isGameOver(): boolean {
-    return this.times[0] <= 0 || this.times[1] <= 0;
-  }
-
   reset(): void {
     this.times = [this.initialTimeMs, this.initialTimeMs];
     this.moveStartTimes = [this.initialTimeMs, this.initialTimeMs];
@@ -66,30 +58,21 @@ export class BronsteinDelayStrategy implements TimerStrategy {
   getConfigParams(): TimerConfigParam[] {
     return [
       {
-        name: 'initialTimeMinutes',
+        name: 'initialTimeMin',
         type: 'number',
-        label: 'Initial Time (minutes)',
+        label: 'Tempo inicial (min)',
         defaultValue: 5,
         minValue: 1,
         maxValue: 180,
       },
       {
-        name: 'delaySeconds',
+        name: 'delaySec',
         type: 'number',
-        label: 'Delay (seconds)',
+        label: 'Atraso (s)',
         defaultValue: 3,
         minValue: 0,
         maxValue: 60,
       },
     ];
-  }
-
-  setConfigParam(paramName: string, value: any): void {
-    if (paramName === 'initialTimeMinutes') {
-      this.initialTimeMs = value * 60 * 1000;
-      this.reset();
-    } else if (paramName === 'delaySeconds') {
-      this.delayMs = value * 1000;
-    }
   }
 }

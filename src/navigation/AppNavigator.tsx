@@ -5,8 +5,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import MainMenuScreen from '../screens/MainMenuScreen';
 import TimerSelectionScreen from '../screens/TimerSelectionScreen';
 import GameScreen from '../screens/GameScreen';
+import AboutScreen from '../screens/AboutScreen';
 import HelpScreen from '../screens/HelpScreen';
-import SettingsScreen from '../screens/SettingsScreen';
 import { TimerType } from '../factories/TimerStrategyFactory';
 
 export type RootStackParamList = {
@@ -16,8 +16,8 @@ export type RootStackParamList = {
     strategyType: TimerType | null;
     config: Record<string, any>;
   };
+  About: undefined;
   Help: undefined;
-  Settings: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -29,7 +29,7 @@ export default function AppNavigator() {
         <Stack.Screen
           name="MainMenu"
           component={MainMenuScreen}
-          options={{ title: 'Relógio' }}
+          options={{ title: 'Relógio de jogo' }}
         />
         <Stack.Screen
           name="TimerSelection"
@@ -42,14 +42,14 @@ export default function AppNavigator() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
+          name="About"
+          component={AboutScreen}
+          options={{ title: 'Sobre' }}
+        />
+        <Stack.Screen
           name="Help"
           component={HelpScreen}
           options={{ title: 'Ajuda' }}
-        />
-        <Stack.Screen
-          name="Settings"
-          component={SettingsScreen}
-          options={{ title: 'Configurações' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

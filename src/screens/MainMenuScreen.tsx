@@ -15,21 +15,20 @@ const MainMenuScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Chess Clock</Text>
+      <Text style={styles.title}>Relógio</Text>
       <View style={styles.buttonContainer}>
         <Button
-          title="Play"
+          title="Jogar"
           onPress={() => navigation.navigate('TimerSelection')}
         />
-
-        <Button title="Help" onPress={() => navigation.navigate('Help')} />
-
-        {Platform.OS !== 'web' && (
-          <Button
-            title="Settings"
-            onPress={() => navigation.navigate('Settings')}
-          />
-        )}
+        <Button 
+          title="Sobre" 
+          onPress={() => navigation.navigate('About')} 
+        />
+        <Button 
+          title="Ajuda" 
+          onPress={() => navigation.navigate('Help')} 
+        />
       </View>
     </View>
   );
