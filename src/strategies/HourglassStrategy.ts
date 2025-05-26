@@ -14,18 +14,22 @@ export class HourglassStrategy extends TimerStrategy {
 
   setRemainingTime(playerId: number, timeMs: number): void {
     // Track how much time was reduced
-    const timeDiff = this.times[playerId] - timeMs;
+    const timeDiff = this.times[playerId][0] - timeMs;
 
     if (timeDiff > 0 && playerId === this.currentPlayer) {
       // Decrease active player's time
-      this.times[playerId] = timeMs;
+      this.times[playerId][0] = timeMs;
+      this.times[playerId][1] = false; // Set creasing flag
 
       // Increase opponent's time by the same amount
       const opponentId = 1 - playerId;
-      this.times[opponentId] += timeDiff;
+      this.times[opponentId][0] += timeDiff;
+      this.times[opponentId][1] = true;
+
+      console.log("jogador", playerId, "reduziu para", timeMs, "ms, jogador", opponentId, "aumentou para", this.times[opponentId], "ms");
     } else {
       // Direct set (for reset or initialization)
-      this.times[playerId] = timeMs;
+      this.times[playerId][0] = timeMs;
     }
   }
 
@@ -34,7 +38,7 @@ export class HourglassStrategy extends TimerStrategy {
   }
 
   reset(): void {
-    this.times = [this.initialTimeMs, this.initialTimeMs];
+    this.times = [[this.initialTimeMs, false], [this.initialTimeMs, false]];
     this.currentPlayer = 0;
   }
 

@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface ITimerStrategy {
-  getRemainingTime(playerId: number): number;
+  getRemainingTime(playerId: number): [number, boolean];
   setRemainingTime(playerId: number, timeMs: number): void;
   switchPlayer?(): void;
   isGameOver(): boolean;
@@ -10,12 +10,14 @@ export interface ITimerStrategy {
   renderStatus?(playerId: number): React.ReactNode;
 }
 
+type PlayerTime = [number, boolean];
+
 export abstract class TimerStrategy implements ITimerStrategy {
   static readonly name: string;
   static readonly description: string;
 
   protected initialTimeMs: number = 0;
-  protected times: number[] = [0, 0];
+  protected times: PlayerTime[] = [[0, false], [0, false]];
 
   constructor(initialTimeMs: number) {
     this.initialTimeMs = initialTimeMs;
@@ -24,22 +26,25 @@ export abstract class TimerStrategy implements ITimerStrategy {
 
   abstract getConfigParams(): TimerConfigParam[];
 
-  getRemainingTime(playerId: number): number {
+  getRemainingTime(playerId: number): [number, boolean] {
     return this.times[playerId];
   }
 
-  setRemainingTime(playerId: number, timeMs: number): void {
-    this.times[playerId] = timeMs;
+  setRemainingTime(playerId: number, timeMs: number, isDecreasing: boolean = false): void {
+    this.times[playerId] = [timeMs, isDecreasing];
   }
 
   switchPlayer(): void {}
 
   isGameOver(): boolean {
-    return this.times.some(time => time <= 0);
+    return this.times.some(([time]) => time <= 0);
   }
 
   reset(): void {
-    this.times = [this.initialTimeMs, this.initialTimeMs];
+    this.times = [
+      [this.initialTimeMs, false],
+      [this.initialTimeMs, false],
+    ];
   }
 }
 

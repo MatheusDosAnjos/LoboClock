@@ -54,11 +54,11 @@ export class TournamentStrategy extends TimerStrategy {
 
     // Apply increment based on the current phase
     if (this.currentPhase[previousPlayer] === 1) {
-      this.times[previousPlayer] += this.phase1IncrementMs;
+      this.times[previousPlayer][0] += this.phase1IncrementMs;
     } else if (this.currentPhase[previousPlayer] === 2) {
-      this.times[previousPlayer] += this.phase2IncrementMs;
+      this.times[previousPlayer][0] += this.phase2IncrementMs;
     } else {
-      this.times[previousPlayer] += this.phase3IncrementMs;
+      this.times[previousPlayer][0] += this.phase3IncrementMs;
     }
 
     // Increment moves and check for phase changes
@@ -81,7 +81,7 @@ export class TournamentStrategy extends TimerStrategy {
       this.movesMade[playerId] >= this.phase1Moves
     ) {
       this.currentPhase[playerId] = 2;
-      this.times[playerId] += this.phase2TimeMs;
+      this.times[playerId][0] += this.phase2TimeMs;
       this.justChangedPhase[playerId] = true;
     }
     // Check for phase 2 to phase 3 transition
@@ -90,13 +90,13 @@ export class TournamentStrategy extends TimerStrategy {
       this.movesMade[playerId] >= this.phase1Moves + this.phase2Moves
     ) {
       this.currentPhase[playerId] = 3;
-      this.times[playerId] += this.phase3TimeMs;
+      this.times[playerId][0] += this.phase3TimeMs;
       this.justChangedPhase[playerId] = true;
     }
   }
 
   reset(): void {
-    this.times = [this.initialTimeMs, this.initialTimeMs];
+    this.times = [[this.initialTimeMs, false], [this.initialTimeMs, false]];
     this.movesMade = [0, 0];
     this.currentPhase = [1, 1];
     this.justChangedPhase = [false, false];

@@ -72,9 +72,9 @@ export class CustomStrategy extends TimerStrategy {
     this.reset();
   }
 
-  getRemainingTime(playerId: number): number {
+  getRemainingTime(playerId: number): [number, boolean] {
     // If this player has main time, return that
-    if (this.times[playerId] > 0) {
+    if (this.times[playerId][0] > 0) {
       return this.times[playerId];
     }
 
@@ -83,23 +83,23 @@ export class CustomStrategy extends TimerStrategy {
     if (playerId !== this.currentPlayer) {
       // Return what their extra time will be when it's their turn again
       if (this.inOvertime[playerId]) {
-        return this.otBaseExtraMs + this.leftoverExtra[playerId];
+        return [this.otBaseExtraMs + this.leftoverExtra[playerId], false];
       } else {
-        return this.baseExtraMs + this.leftoverExtra[playerId];
+        return [this.baseExtraMs + this.leftoverExtra[playerId], false];
       }
     }
 
     // For current active player, return their current extra time
-    return this.extraTimes[playerId];
+    return [this.extraTimes[playerId], false];
   }
 
   setRemainingTime(playerId: number, timeMs: number): void {
     // Player has main time - update main time
-    if (this.times[playerId] > 0) {
-      this.times[playerId] = timeMs;
+    if (this.times[playerId][0] > 0) {
+      this.times[playerId][0] = timeMs;
       // When main time runs out, transition to extra time
       if (timeMs <= 0) {
-        this.times[playerId] = 0;
+        this.times[playerId][0] = 0;
         // Set up the extra time - use the appropriate base extra time
         this.extraTimes[playerId] = this.inOvertime[playerId]
           ? this.otBaseExtraMs
@@ -123,12 +123,12 @@ export class CustomStrategy extends TimerStrategy {
 
   startOvertime(playerId: number): void {
     this.inOvertime[playerId] = true;
-    this.times[playerId] = this.otInitialMs;
+    this.times[playerId][0] = this.otInitialMs;
     this.extraTimes[playerId] = this.otBaseExtraMs;
     this.leftoverExtra[playerId] = 0;
     // Reset turn start time tracking for overtime
     if (playerId === this.currentPlayer) {
-      this.turnStartMainTime = this.times[playerId];
+      this.turnStartMainTime = this.times[playerId][0];
     }
   }
 
@@ -138,8 +138,8 @@ export class CustomStrategy extends TimerStrategy {
 
     // Calculate actual time spent from main time reduction (more accurate)
     let actualTimeSpent = 0;
-    if (this.turnStartMainTime > 0 && this.times[p] >= 0) {
-      actualTimeSpent = Math.max(0, this.turnStartMainTime - this.times[p]);
+    if (this.turnStartMainTime > 0 && this.times[p][0] >= 0) {
+      actualTimeSpent = Math.max(0, this.turnStartMainTime - this.times[p][0]);
     }
 
     // 1) stash leftover extra time based on accumulate setting
@@ -153,14 +153,14 @@ export class CustomStrategy extends TimerStrategy {
     }
 
     // 2) figure out if main was still >0 when we switched
-    const hadMain = this.times[p] > 0 || this.turnStartMainTime > 0;
+    const hadMain = this.times[p][0] > 0 || this.turnStartMainTime > 0;
 
     // 3) apply increment only if main was still running
-    if (hadMain && this.times[p] > 0) {
+    if (hadMain && this.times[p][0] > 0) {
       if (this.incrementMs > 0 && !this.inOvertime[p]) {
-        this.times[p] += this.incrementMs;
+        this.times[p][0] += this.incrementMs;
       } else if (this.otIncrementMs > 0 && this.inOvertime[p]) {
-        this.times[p] += this.otIncrementMs;
+        this.times[p][0] += this.otIncrementMs;
       }
     }
 
@@ -172,8 +172,8 @@ export class CustomStrategy extends TimerStrategy {
 
       if (shouldTransfer) {
         // Only transfer if the other player still has main time
-        if (this.times[np] > 0) {
-          this.times[np] += actualTimeSpent;
+        if (this.times[np][0] > 0) {
+          this.times[np][0] += actualTimeSpent;
         }
       }
     }
@@ -187,24 +187,24 @@ export class CustomStrategy extends TimerStrategy {
 
     // 6) flip active player and record turn start time
     this.currentPlayer = np;
-    this.turnStartMainTime = this.times[np]; // Track main time at start of new turn
+    this.turnStartMainTime = this.times[np][0]; // Track main time at start of new turn
   }
 
   isGameOver(): boolean {
     // Game is over if a player has no main time AND no extra time
     // And not eligible for overtime or already in overtime
     return (
-      (this.times[0] <= 0 &&
+      (this.times[0][0] <= 0 &&
         this.extraTimes[0] <= 0 &&
         (this.inOvertime[0] || this.overtimeMode === 'none')) ||
-      (this.times[1] <= 0 &&
+      (this.times[1][0] <= 0 &&
         this.extraTimes[1] <= 0 &&
         (this.inOvertime[1] || this.overtimeMode === 'none'))
     );
   }
 
   reset(): void {
-    this.times = [this.initialTimeMs, this.initialTimeMs];
+    this.times = [[this.initialTimeMs, false], [this.initialTimeMs, false]];
     this.extraTimes = [this.baseExtraMs, this.baseExtraMs];
     this.leftoverExtra = [0, 0];
     this.inOvertime = [false, false];

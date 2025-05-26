@@ -11,7 +11,7 @@ export class GameController {
   private startTimestamp: number = 0;
   private animationFrameId: number | null = null;
   private gameOverCallback: () => void = () => {};
-  private timeUpdateCallback: (times: number[]) => void = () => {};
+  private timeUpdateCallback: (times: [number, boolean][]) => void = () => {};
   private moveCountCallback: (moves: number[]) => void = () => {};
   private moveCount: number[] = [0, 0]; // Track moves for each player
 
@@ -98,7 +98,7 @@ export class GameController {
       // Calculate the new remaining time
       const currentRemaining = this.strategy.getRemainingTime(
         this.activePlayer,
-      );
+      )[0];
       const newRemaining = Math.max(0, currentRemaining - elapsedMs);
 
       // Update the strategy with the new time
@@ -134,7 +134,7 @@ export class GameController {
     return [...this.moveCount];
   }
 
-  onTimeUpdate(callback: (times: number[]) => void): void {
+  onTimeUpdate(callback: (times: [number, boolean][]) => void): void {
     this.timeUpdateCallback = callback;
   }
 

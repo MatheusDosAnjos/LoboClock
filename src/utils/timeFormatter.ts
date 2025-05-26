@@ -3,16 +3,22 @@
  * @param timeMs Time in milliseconds
  * @returns Formatted time string
  */
-export function formatTime(timeMs: number): string {
+export function formatTime(timeMs: number, isCrescent: boolean): string {
   // Ensure time is not negative
   const time = Math.max(0, timeMs);
 
   // Calculate hours, minutes, seconds using Math.ceil for total seconds
   // This prevents the immediate visual drop of the first second.
-  const totalSeconds = Math.ceil(time / 1000); // Changed from Math.floor
+  let totalSeconds: number;
+  if (isCrescent) {
+    totalSeconds = Math.floor(time / 1000);
+  } else {
+    totalSeconds = Math.ceil(time / 1000);
+  }
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
+  console.log("time", time,"totalSeconds", totalSeconds, "totalSeconds floor", Math.floor(time/1000), "Seconds", seconds, "SecondsFloor", Math.floor(time/1000) % 60, "isCrescent", isCrescent);
 
   // Format based on whether hours are present
   if (hours > 0) {

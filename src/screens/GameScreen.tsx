@@ -12,6 +12,7 @@ import {
 import { useRoute, useNavigation, NavigationProp } from '@react-navigation/native';
 import { GameController } from '../controllers/GameController';
 import { formatTime } from '../utils/timeFormatter';
+import { TimerType } from '../factories/TimerStrategyFactory';
 
 const { height } = Dimensions.get('window');
 
@@ -24,8 +25,8 @@ const GameScreen = () => {
     playerNames?: [string, string];
   };
 
-  const [gameController] = useState(() => new GameController(strategyType, config));
-  const [times, setTimes] = useState<number[]>([0, 0]);
+  const [gameController] = useState(() => new GameController(strategyType as TimerType, config));
+  const [times, setTimes] = useState<[number, boolean][]>([[0, false],[0, false]]);
   const [moveCounts, setMoveCounts] = useState<number[]>([0, 0]);
   const [currentPlayer, setCurrentPlayer] = useState(0);
   const [isPaused, setIsPaused] = useState(true);
@@ -45,19 +46,18 @@ const GameScreen = () => {
 
   // Initialize timers and listeners
   useEffect(() => {
-    const initialTimes = [
+    setTimes([
       gameController.getCurrentStrategy().getRemainingTime(0),
       gameController.getCurrentStrategy().getRemainingTime(1),
-    ];
-    setTimes(initialTimes);
+    ]);
     setMoveCounts(gameController.getMoveCount());
 
     gameController.onTimeUpdate(newTimes => setTimes(newTimes));
     gameController.onMoveCountUpdate(newMoves => setMoveCounts(newMoves));
 
     gameController.onGameOver(() => {
-      const winner = times[0] <= 0 ? playerLabels[1] : playerLabels[0];
-      const winnerMoves = times[0] <= 0 ? moveCounts[1] : moveCounts[0];
+      const winner = times[0][0] <= 0 ? playerLabels[1] : playerLabels[0];
+      const winnerMoves = times[0][0] <= 0 ? moveCounts[1] : moveCounts[0];
 
       Alert.alert('Fim de jogo', `Vencedor: ${winner}`, [
         { text: 'Novo jogo', onPress: handleReset },
@@ -74,7 +74,7 @@ const GameScreen = () => {
   const updateSpecialStatuses = () => {
     const strategy = gameController.getCurrentStrategy();
 
-    if (strategy.name === 'Byo-Yomi') {
+    if (strategy.constructor.name === 'ByoYomiStrategy') {
       const byoYomiStrategy = strategy as any;
       if (byoYomiStrategy.getByoYomiStatus) {
         setByoYomiStatus([
@@ -84,7 +84,7 @@ const GameScreen = () => {
       }
     }
 
-    if (strategy.name === 'Canadian Overtime') {
+    if (strategy.constructor.name === 'CanadianOvertimeStrategy') {
       const canadianStrategy = strategy as any;
       if (canadianStrategy.getOvertimeStatus) {
         setCanadianStatus([
@@ -152,12 +152,12 @@ const GameScreen = () => {
     const strategy = gameController.getCurrentStrategy();
 
     // First check for custom render function in strategy
-    if (typeof strategy.renderStatus === 'function') {
-      return strategy.renderStatus(player);
+    if (typeof (strategy as any).renderStatus === 'function') {
+      return (strategy as any).renderStatus(player);
     }
 
     // Fallback to specific strategy rendering
-    if (strategy.name === 'Byo-Yomi') {
+    if (strategy.constructor.name === 'ByoYomiStrategy') {
       const status = byoYomiStatus[player];
       if (status.inByoYomi) {
         return (
@@ -168,7 +168,7 @@ const GameScreen = () => {
       }
     }
 
-    if (strategy.name === 'Canadian Overtime') {
+    if (strategy.constructor.name === 'CanadianOvertimeStrategy') {
       const status = canadianStatus[player];
       if (status.inOvertime) {
         return (
@@ -198,7 +198,8 @@ const GameScreen = () => {
   const renderPlayerClock = (player: number) => {
     const isCurrent = currentPlayer === player && !isPaused;
     const isPlayer2 = player === 1;
-  
+    const isCreasing = times[player][1];
+
     return (
       <TouchableOpacity
         style={[
@@ -215,7 +216,7 @@ const GameScreen = () => {
             Platform.OS !== 'web' && isPlayer2 && { transform: [{ rotate: '180deg' }] },
           ]}
         >
-          <Text style={styles.timeText}>{formatTime(times[player])}</Text>
+          <Text style={styles.timeText}>{formatTime(times[player][0], isCreasing)}</Text>
           <Text style={styles.playerLabel}>Player {player + 1}</Text>
           <Text style={styles.moveCountText}>Moves: {moveCounts[player]}</Text>
           {renderSpecialStatus(player)}

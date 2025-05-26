@@ -26,19 +26,19 @@ export class BronsteinDelayStrategy extends TimerStrategy {
     }
 
     // Always update the current time
-    this.times[playerId] = timeMs;
+    this.times[playerId][0] = timeMs;
   }
 
   switchPlayer(): void {
     // Calculate time spent on the move
     const previousPlayer = this.currentPlayer;
     const timeSpent =
-      this.moveStartTimes[previousPlayer] - this.times[previousPlayer];
+      this.moveStartTimes[previousPlayer] - this.times[previousPlayer][0];
 
     // Add back delay (limited to actual time spent or max delay)
     if (timeSpent > 0) {
       const timeToAdd = Math.min(timeSpent, this.delayMs);
-      this.times[previousPlayer] += timeToAdd;
+      this.times[previousPlayer][0] += timeToAdd;
     }
 
     // Switch to the next player
@@ -49,7 +49,7 @@ export class BronsteinDelayStrategy extends TimerStrategy {
   }
 
   reset(): void {
-    this.times = [this.initialTimeMs, this.initialTimeMs];
+    this.times = [[this.initialTimeMs,false], [this.initialTimeMs,false]];
     this.moveStartTimes = [this.initialTimeMs, this.initialTimeMs];
     this.isFirstUpdate = [true, true];
     this.currentPlayer = 0;

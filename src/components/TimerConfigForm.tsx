@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { TimerStrategy } from '../strategies/TimerStrategy';
+import { TimerConfigParam, TimerStrategy } from '../strategies/TimerStrategy';
 
 interface TimerConfigFormProps {
   strategy: TimerStrategy;
@@ -67,7 +67,7 @@ export const TimerConfigForm = ({
     return isValid;
   };
 
-  const shouldShowParam = param => {
+  const shouldShowParam = (param: TimerConfigParam) => {
     if (!param.condition) return true;
 
     return config[param.condition.param] === param.condition.value;

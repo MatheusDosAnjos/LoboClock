@@ -28,20 +28,20 @@ export class ByoYomiStrategy extends TimerStrategy {
     this.reset();
   }
 
-  getRemainingTime(playerId: number): number {
+  getRemainingTime(playerId: number): [number, boolean] {
     return this.inByoYomi[playerId]
-      ? this.byoYomiTimes[playerId]
+      ? [this.byoYomiTimes[playerId], false]
       : this.times[playerId];
   }
 
   setRemainingTime(playerId: number, timeMs: number): void {
     if (!this.inByoYomi[playerId]) {
       // Player is using main time
-      this.times[playerId] = timeMs;
+      this.times[playerId][0] = timeMs;
 
       // Check if main time has expired and we need to enter byo-yomi
-      if (this.times[playerId] <= 0) {
-        this.times[playerId] = 0;
+      if (this.times[playerId][0] <= 0) {
+        this.times[playerId][0] = 0;
         this.inByoYomi[playerId] = true;
         this.periodsRemaining[playerId] = this.numPeriods;
         this.byoYomiTimes[playerId] = this.byoYomiPeriodMs;
@@ -93,7 +93,7 @@ export class ByoYomiStrategy extends TimerStrategy {
   }
 
   reset(): void {
-    this.times = [this.initialTimeMs, this.initialTimeMs];
+    this.times = [[this.initialTimeMs, false], [this.initialTimeMs, false]];
     this.byoYomiTimes = [this.byoYomiPeriodMs, this.byoYomiPeriodMs];
     this.inByoYomi = [false, false];
     this.periodsRemaining = [this.numPeriods, this.numPeriods];

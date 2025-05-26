@@ -28,21 +28,21 @@ export class CanadianOvertimeStrategy extends TimerStrategy {
     this.reset();
   }
 
-  getRemainingTime(playerId: number): number {
+  getRemainingTime(playerId: number): [number, boolean] {
     // Return overtime time if in overtime, otherwise main time
     return this.inOvertime[playerId]
-      ? this.overtimeTimes[playerId]
+      ? [this.overtimeTimes[playerId], false]
       : this.times[playerId];
   }
 
   setRemainingTime(playerId: number, timeMs: number): void {
     if (!this.inOvertime[playerId]) {
       // Player is using main time
-      this.times[playerId] = timeMs;
+      this.times[playerId][0] = timeMs;
 
       // Check if main time has expired and we need to enter overtime
-      if (this.times[playerId] <= 0) {
-        this.times[playerId] = 0;
+      if (this.times[playerId][0] <= 0) {
+        this.times[playerId][0] = 0;
         this.inOvertime[playerId] = true;
         this.movesMade[playerId] = 0;
         this.overtimeTimes[playerId] = this.overtimeMs;
@@ -93,7 +93,7 @@ export class CanadianOvertimeStrategy extends TimerStrategy {
   }
 
   reset(): void {
-    this.times = [this.initialTimeMs, this.initialTimeMs];
+    this.times = [[this.initialTimeMs, false], [this.initialTimeMs, false]];
     this.overtimeTimes = [this.overtimeMs, this.overtimeMs];
     this.inOvertime = [false, false];
     this.movesMade = [0, 0];

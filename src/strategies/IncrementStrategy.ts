@@ -17,12 +17,12 @@ export class IncrementStrategy extends TimerStrategy {
 
   switchPlayer(): void {
     // Add increment to the player who just made a move
-    this.times[this.currentPlayer] += this.incrementMs;
+    this.times[this.currentPlayer][0] += this.incrementMs;
     this.currentPlayer = 1 - this.currentPlayer; // Toggle between 0 and 1
   }
 
   reset(): void {
-    this.times = [this.initialTimeMs, this.initialTimeMs];
+    this.times = [[this.initialTimeMs, false], [this.initialTimeMs, false]];
     this.currentPlayer = 0;
   }
 
