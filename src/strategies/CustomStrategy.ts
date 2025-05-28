@@ -209,7 +209,7 @@ export class CustomStrategy extends TimerStrategy {
     this.leftoverExtra = [0, 0];
     this.inOvertime = [false, false];
     this.currentPlayer = 0;
-    this.turnStartMainTime = this.initialTimeMs; // Initialize turn start main time
+    this.turnStartMainTime = this.initialTimeMs;
   }
 
   getConfigParams(): TimerConfigParam[] {
@@ -251,7 +251,7 @@ export class CustomStrategy extends TimerStrategy {
       {
         name: 'transferMainTime',
         type: 'select',
-        label: 'Transferir tempo gasto (tempo principal)',
+        label: 'Transferir tempo gasto',
         defaultValue: false,
         options: [
           { label: 'Não', value: false },
@@ -310,7 +310,7 @@ export class CustomStrategy extends TimerStrategy {
       {
         name: 'otTransferMainTime',
         type: 'select',
-        label: 'Transferir tempo gasto (overtime)',
+        label: 'Transferir tempo gasto OT',
         defaultValue: false,
         options: [
           { label: 'Não', value: false },
