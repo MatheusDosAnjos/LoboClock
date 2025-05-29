@@ -18,7 +18,6 @@ export function formatTime(timeMs: number, isCrescent: boolean): string {
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
-  console.log("time", time,"totalSeconds", totalSeconds, "totalSeconds floor", Math.floor(time/1000), "Seconds", seconds, "SecondsFloor", Math.floor(time/1000) % 60, "isCrescent", isCrescent);
 
   // Format based on whether hours are present
   if (hours > 0) {

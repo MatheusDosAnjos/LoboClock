@@ -25,8 +25,6 @@ export class HourglassStrategy extends TimerStrategy {
       const opponentId = 1 - playerId;
       this.times[opponentId][0] += timeDiff;
       this.times[opponentId][1] = true;
-
-      console.log("jogador", playerId, "reduziu para", timeMs, "ms, jogador", opponentId, "aumentou para", this.times[opponentId], "ms");
     } else {
       // Direct set (for reset or initialization)
       this.times[playerId][0] = timeMs;

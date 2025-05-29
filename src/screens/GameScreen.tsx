@@ -32,6 +32,8 @@ const GameScreen = () => {
   const [isPaused, setIsPaused] = useState(true);
   const [gameStarted, setGameStarted] = useState(false);
   const [animValue] = useState(new Animated.Value(0));
+  const [loserIndex, setLoserIndex] = useState<number | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const [byoYomiStatus, setByoYomiStatus] = useState([
     { inByoYomi: false, periodsRemaining: 0 },
@@ -56,19 +58,31 @@ const GameScreen = () => {
     gameController.onMoveCountUpdate(newMoves => setMoveCounts(newMoves));
 
     gameController.onGameOver(() => {
-      const winner = times[0][0] <= 0 ? playerLabels[1] : playerLabels[0];
-      const winnerMoves = times[0][0] <= 0 ? moveCounts[1] : moveCounts[0];
+      // Pegue os tempos mais recentes diretamente do controller
+      const updatedTimes = [
+        gameController.getCurrentStrategy().getRemainingTime(0),
+        gameController.getCurrentStrategy().getRemainingTime(1),
+      ];
+      let loser = null;
 
-      Alert.alert('Fim de jogo', `Vencedor: ${winner}`, [
-        { text: 'Novo jogo', onPress: handleReset },
-        {
-          text: 'Menu principal',
-          onPress: () => navigation.navigate('MainMenu'),
-        },
-      ]);
+      if (gameController.getCurrentStrategy().isGameOver()) {
+        // Verifica qual jogador perdeu pelo tempo
+        if (updatedTimes[0][0] <= 0) loser = 0;
+        else if (updatedTimes[1][0] <= 0) loser = 1;
+      }
+      setLoserIndex(loser);
     });
 
     return () => gameController.pause();
+  }, []);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
   const updateSpecialStatuses = () => {
@@ -103,8 +117,22 @@ const GameScreen = () => {
       useNativeDriver: false,
     }).start();
   }, [currentPlayer]);
+  
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.code === 'Space') {
+        handlePlayerPress(currentPlayer);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPaused, currentPlayer, gameStarted]); // Dependências corretas
 
   const handlePlayerPress = (player: number) => {
+    console.log(loserIndex)
+    if (loserIndex !== null) return; // Não faz nada se o jogo já acabou
+
     if (!gameStarted) {
       gameController.start();
       setIsPaused(false);
@@ -146,6 +174,19 @@ const GameScreen = () => {
     setCurrentPlayer(0);
     setIsPaused(true);
     setGameStarted(false);
+    setLoserIndex(null); // Limpa o destaque vermelho ao resetar
+  };
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    }
   };
 
   const renderSpecialStatus = (player: number) => {
@@ -199,6 +240,7 @@ const GameScreen = () => {
     const isCurrent = currentPlayer === player && !isPaused;
     const isPlayer2 = player === 1;
     const isCreasing = times[player][1];
+    const isLoser = loserIndex === player;
 
     return (
       <TouchableOpacity
@@ -206,9 +248,11 @@ const GameScreen = () => {
           styles.playerClock,
           isPlayer2 ? styles.player2Clock : styles.player1Clock,
           isCurrent && styles.activeClock,
+          isLoser && styles.loserClock, // Adiciona o fundo vermelho se for o perdedor
         ]}
         onPress={() => handlePlayerPress(player)}
         activeOpacity={0.8}
+        disabled={loserIndex!==null} // Opcional: desabilita clique após o fim do jogo
       >
         <View
           style={[
@@ -222,8 +266,8 @@ const GameScreen = () => {
           {renderSpecialStatus(player)}
         </View>
       </TouchableOpacity>
-    );
-  };  
+    );  
+  };
 
   const renderControls = () => (
     <View style={Platform.OS === 'web' ? styles.webControls : styles.mobileControls}>
@@ -237,6 +281,17 @@ const GameScreen = () => {
         <Text style={styles.controlText}>Change Timer</Text>
       </TouchableOpacity>
     </View>
+  );
+
+  const fullscreenButton = Platform.OS === 'web' && (
+    <TouchableOpacity 
+      style={styles.fullscreenButton}
+      onPress={toggleFullscreen}
+    >
+      <Text style={styles.fullscreenIcon}>
+        {isFullscreen ? '⊝' : '⤢'}
+      </Text>
+    </TouchableOpacity>
   );
 
   return (
@@ -275,6 +330,7 @@ const GameScreen = () => {
           </>
         )}
       </View>
+      {fullscreenButton}
     </View>
   );
 };
@@ -323,17 +379,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timeText: {
-    fontSize: 72,
+    fontSize: 272,
     fontWeight: 'bold',
     color: '#333',
   },
   playerLabel: {
-    fontSize: 18,
+    fontSize: 68,
     fontWeight: '600',
     color: '#555',
   },
   moveCountText: {
-    fontSize: 14,
+    fontSize: 54,
     marginTop: 5,
     color: '#777',
   },
@@ -349,22 +405,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     backgroundColor: '#333',
+    height: '100%'
   },
   controlButton: {
-    padding: 10,
-    backgroundColor: '#555',
-    borderRadius: 4,
-    marginVertical: Platform.OS === 'web' ? 10 : 0,
-    marginHorizontal: Platform.OS === 'web' ? 0 : 10,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    backgroundColor: '#007bff', // Blue buttons
+    borderRadius: 8, // More rounded corners
+    marginVertical: Platform.OS === 'web' ? 15 : 0, // More vertical margin for web
+    marginHorizontal: Platform.OS === 'web' ? 0 : 5, // Horizontal margin for mobile
+    minWidth: Platform.OS === 'web' ? 150 : 'auto', // Ensure web buttons have good width
+    alignItems: 'center', // Center text in button
   },
   controlText: {
-    color: '#fff',
-    fontSize: 16,
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: '500',
   },
   statusText: {
     marginTop: 5,
     fontSize: 14,
     color: '#333',
+  },
+  loserClock: {
+    backgroundColor: '#ff2400',
+  },
+  fullscreenButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  fullscreenIcon: {
+    color: '#ffffff',
+    fontSize: 24,
+    fontWeight: 'bold',
   },
 });
 

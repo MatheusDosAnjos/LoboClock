@@ -23,11 +23,7 @@ const MainMenuScreen = () => {
         />
         <Button 
           title="Sobre" 
-          onPress={() => navigation.navigate('About')} 
-        />
-        <Button 
-          title="Ajuda" 
-          onPress={() => navigation.navigate('Help')} 
+          onPress={() => navigation.navigate('About')}
         />
       </View>
     </View>
@@ -42,7 +38,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
-    fontSize: 32,
+    fontSize: 52,
     fontWeight: 'bold',
     marginBottom: 40,
   },

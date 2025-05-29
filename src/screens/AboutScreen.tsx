@@ -4,60 +4,51 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 const AboutScreen = () => {
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>How to Use the Chess Clock</Text>
+      <Text style={styles.title}>Como usar o Relógio de Xadrez</Text>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Basic Usage</Text>
+        <Text style={styles.sectionTitle}>Uso Básico</Text>
         <Text style={styles.text}>
-          1. Select a timer type from the Play menu{'\n'}
-          2. Configure time settings as desired{'\n'}
-          3. Tap "Start Game"{'\n'}
-          4. The first player taps their side of the clock when their move is
-          complete{'\n'}
-          5. Players alternate tapping their side when their moves are complete
-          {'\n'}
-          6. The game ends when one player's time runs out
+          1. Selecione um tipo de cronômetro no menu Jogar{'\n'}
+          2. Configure o tempo como desejar{'\n'}
+          3. Toque em "Iniciar Jogo"{'\n'}
+          4. O primeiro jogador toca no seu lado do relógio ao finalizar sua jogada{'\n'}
+          5. Os jogadores alternam tocando em seu lado ao finalizarem suas jogadas{'\n'}
+          6. O jogo termina quando o tempo de um dos jogadores acaba
         </Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Timer Types</Text>
+        <Text style={styles.sectionTitle}>Tipos de Cronômetro</Text>
 
-        <Text style={styles.timerTitle}>Classical</Text>
+        <Text style={styles.timerTitle}>Clássico</Text>
         <Text style={styles.text}>
-          A simple countdown timer with no additional time. Each player has a
-          fixed amount of time for the entire game.
+          Um cronômetro simples de contagem regressiva, sem tempo adicional. Cada jogador tem um tempo fixo para toda a partida.
         </Text>
 
-        <Text style={styles.timerTitle}>Increment (Fischer)</Text>
+        <Text style={styles.timerTitle}>Incremento (Fischer)</Text>
         <Text style={styles.text}>
-          After each move, a fixed amount of time is added to the player's
-          clock. This encourages faster play early to bank time for later
-          critical positions.
+          Após cada jogada, uma quantidade fixa de tempo é adicionada ao relógio do jogador. Isso incentiva jogadas rápidas no início para acumular tempo para posições críticas no final.
         </Text>
 
-        <Text style={styles.timerTitle}>Bronstein Delay</Text>
+        <Text style={styles.timerTitle}>Delay Bronstein</Text>
         <Text style={styles.text}>
-          When a player's time is paused after making a move, they receive back
-          some or all of the time elapsed during their move, up to the maximum
-          delay amount.
+          Quando o tempo de um jogador é pausado após uma jogada, ele recebe de volta parte ou todo o tempo gasto durante a jogada, até o limite máximo do delay.
         </Text>
 
-        <Text style={styles.timerTitle}>Hourglass</Text>
+        <Text style={styles.timerTitle}>Ampulheta</Text>
         <Text style={styles.text}>
-          When one player's clock is running, the other player's clock increases
-          by the same amount. This creates a dynamic where moving quickly can
-          actually increase your time advantage.
+          Quando o relógio de um jogador está correndo, o relógio do outro aumenta na mesma proporção. Isso cria uma dinâmica onde jogar rápido pode aumentar sua vantagem de tempo.
         </Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Controls</Text>
+        <Text style={styles.sectionTitle}>Controles</Text>
         <Text style={styles.text}>
-          • Tap your side of the clock to end your turn{'\n'}• Use the center
-          buttons to pause/resume or reset the game{'\n'}• The active player's
-          side will be highlighted{'\n'}• Tap "Change Timer" to select a
-          different timing method
+          • Toque no seu lado do relógio para encerrar seu turno{'\n'}
+          • Use os botões centrais para pausar/retomar ou reiniciar o jogo{'\n'}
+          • O lado do jogador ativo ficará destacado{'\n'}
+          • Toque em "Mudar Cronômetro" para escolher outro método de tempo
         </Text>
       </View>
     </ScrollView>
