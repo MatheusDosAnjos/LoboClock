@@ -5,19 +5,43 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Animated,
   Dimensions,
+  SafeAreaView,
+  StatusBar,
+  Platform,
 } from 'react-native';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'; // https://withfra.me/react-native-vector-icons/directory
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { GameController } from '../controllers/GameController';
 import { formatTime } from '../utils/timeFormatter';
 
-const { height } = Dimensions.get('window');
+const { height, width } = Dimensions.get('window');
+
+const COLORS = {
+  background: '#f4f4f0', // Light beige background from LoboClock design
+  playerClockBackground: '#ffffff', // White for player clock areas
+  playerClockActiveBackground: '#e8f5e9', // Very light green for active player (subtle)
+  textPrimary: '#212121', // Darker text for better contrast
+  textSecondary: '#757575', // Lighter text for secondary info
+  primaryAction: '#4CAF50', // Main green from LoboClock logo (e.g., Start/Pause)
+  accentOrange: '#FFA500', // Orange as requested (e.g., Reset)
+  accentPurple: '#8A2BE2', // Purple from LoboClock logo (e.g., Change Timer)
+  controlsBackground: '#333333', // Dark background for controls
+  controlButtonText: '#ffffff',
+  activeIndicatorColor: '#4CAF50', // Green for the animated side indicator (now used for active clock border)
+  borderColor: '#B0BEC5', // Light grey for INACTIVE borders (NEW - or use a more subtle color from palette)
+  shadowColor: '#000000', // Black for shadows
+  specialStatusTextPlayer1: '#FFA500', // Example: Orange for player 1 special status
+  specialStatusTextPlayer2: '#8A2BE2', // Example: Purple for player 2 special status
+};
 
 const GameScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const { strategyType, config } = route.params;
+  const { strategyType, config } = route.params as {
+    strategyType: any;
+    config: any;
+  };
 
   const [gameController] = useState(
     () => new GameController(strategyType, config),
@@ -27,9 +51,7 @@ const GameScreen = () => {
   const [currentPlayer, setCurrentPlayer] = useState(0);
   const [isPaused, setIsPaused] = useState(true);
   const [gameStarted, setGameStarted] = useState(false);
-  const [animValue] = useState(new Animated.Value(0));
 
-  // Initialize timers and listeners
   useEffect(() => {
     const initialTimes = [
       gameController.getCurrentStrategy().getRemainingTime(0),
@@ -56,15 +78,6 @@ const GameScreen = () => {
     return () => gameController.pause();
   }, []);
 
-  // Animate the active indicator
-  useEffect(() => {
-    Animated.timing(animValue, {
-      toValue: currentPlayer,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  }, [currentPlayer]);
-
   const handlePlayerPress = (player: number) => {
     if (!gameStarted) {
       gameController.start();
@@ -89,9 +102,7 @@ const GameScreen = () => {
     if (isPaused) {
       gameController.start();
       setIsPaused(false);
-      if (!gameStarted) {
-        setGameStarted(true); // Ensure gameStarted is set when first starting
-      }
+      if (!gameStarted) setGameStarted(true);
     } else {
       gameController.pause();
       setIsPaused(true);
@@ -119,158 +130,243 @@ const GameScreen = () => {
     return null;
   };
 
-  const activeIndicator = gameStarted && (
-    <Animated.View
-      style={[
-        styles.activeIndicator,
-        {
-          top: animValue.interpolate({
-            inputRange: [0, 1],
-            outputRange: [height / 2, 0],
-          }),
-        },
-      ]}
-    />
-  );
+  const getTimeTextStyle = (playerIndex: number) => ({
+    ...styles.timeText,
+    color:
+      gameStarted && !isPaused && currentPlayer === playerIndex
+        ? COLORS.textPrimary
+        : COLORS.textSecondary,
+  });
+
+  const getPlayerLabelStyle = (playerIndex: number) => ({
+    ...styles.playerLabel,
+    color:
+      gameStarted && !isPaused && currentPlayer === playerIndex
+        ? COLORS.textPrimary
+        : COLORS.textSecondary,
+    fontWeight:
+      gameStarted && !isPaused && currentPlayer === playerIndex
+        ? 'bold'
+        : '600',
+  });
 
   return (
-    <View style={styles.container}>
-      {activeIndicator}
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      <View style={styles.container}>
+        {/* Player 2 (Top - Index 1) */}
+        <TouchableOpacity
+          style={[
+            styles.playerClock,
+            currentPlayer === 1 &&
+              !isPaused &&
+              gameStarted &&
+              styles.activeClock,
+          ]}
+          onPress={() => handlePlayerPress(1)}
+          activeOpacity={0.85}
+        >
+          <View style={styles.playerInfoContainerRotated}>
+            <Text style={getTimeTextStyle(1)}>{formatTime(times[1])}</Text>
+            <Text style={getPlayerLabelStyle(1)}>Jogador 2</Text>
+            <Text style={styles.moveCountText}>Jogadas: {moveCounts[1]}</Text>
+            {renderSpecialStatus(1)}
+          </View>
+        </TouchableOpacity>
 
-      {/* Player 2 (Top) */}
-      <TouchableOpacity
-        style={[
-          styles.playerClock,
-          styles.player2Clock,
-          currentPlayer === 1 && !isPaused && styles.activeClock,
-        ]}
-        onPress={() => handlePlayerPress(1)}
-        activeOpacity={0.8}
-      >
-        <View style={styles.playerInfoContainer}>
-          <Text style={styles.timeText}>{formatTime(times[1])}</Text>
-          <Text style={styles.playerLabel}>Jogador 2</Text>
-          <Text style={styles.moveCountText}>Jogadas: {moveCounts[1]}</Text>
-          {renderSpecialStatus(1)}
+        {/* Controls */}
+        <View style={styles.controlsContainer}>
+          <TouchableOpacity
+            style={[styles.controlButton, styles.resetButton]}
+            onPress={handleReset}
+          >
+            <MaterialCommunityIcons
+              name="restart"
+              size={width * 0.08}
+              color={COLORS.controlButtonText}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.controlButton,
+              styles.pausePlayButton,
+              styles.pausePlayButtonContent,
+            ]}
+            onPress={handlePauseToggle}
+          >
+            <MaterialCommunityIcons
+              name={isPaused ? 'play' : 'pause'}
+              size={width * 0.08}
+              color={COLORS.controlButtonText}
+            />
+            <Text style={styles.controlButtonText}>
+              {isPaused ? (gameStarted ? 'Continuar' : 'Iniciar') : 'Pausar'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.controlButton, styles.changeTimerButton]}
+            onPress={() => navigation.navigate('TimerSelection' as never)}
+          >
+            <MaterialCommunityIcons
+              name="clock-edit-outline"
+              size={width * 0.08}
+              color={COLORS.controlButtonText}
+            />
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
 
-      {/* Controls */}
-      <View style={styles.controls}>
+        {/* Player 1 (Bottom - Index 0) */}
         <TouchableOpacity
-          style={styles.controlButton}
-          onPress={handlePauseToggle}
+          style={[
+            styles.playerClock,
+            currentPlayer === 0 &&
+              !isPaused &&
+              gameStarted &&
+              styles.activeClock,
+          ]}
+          onPress={() => handlePlayerPress(0)}
+          activeOpacity={0.85}
         >
-          <Text style={styles.controlText}>
-            {isPaused ? 'Iniciar' : 'Pausar'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.controlButton} onPress={handleReset}>
-          <Text style={styles.controlText}>Reset</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.controlButton}
-          onPress={() => navigation.navigate('TimerSelection')}
-        >
-          <Text style={styles.controlText}>Trocar timer</Text>
+          <View style={styles.playerInfoContainer}>
+            <Text style={getTimeTextStyle(0)}>{formatTime(times[0])}</Text>
+            <Text style={getPlayerLabelStyle(0)}>Jogador 1</Text>
+            <Text style={styles.moveCountText}>Jogadas: {moveCounts[0]}</Text>
+            {renderSpecialStatus(0)}
+          </View>
         </TouchableOpacity>
       </View>
-
-      {/* Player 1 (Bottom) */}
-      <TouchableOpacity
-        style={[
-          styles.playerClock,
-          styles.player1Clock,
-          currentPlayer === 0 && !isPaused && styles.activeClock,
-        ]}
-        onPress={() => handlePlayerPress(0)}
-        activeOpacity={0.8}
-      >
-        <View style={styles.playerInfoContainer}>
-          <Text style={styles.timeText}>{formatTime(times[0])}</Text>
-          <Text style={styles.playerLabel}>Jogador 1</Text>
-          <Text style={styles.moveCountText}>Jogadas: {moveCounts[0]}</Text>
-          {renderSpecialStatus(0)}
-        </View>
-      </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    justifyContent: 'space-between',
   },
   playerClock: {
-    flex: 2,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-  },
-  player1Clock: {
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
-  },
-  player2Clock: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    transform: [{ rotate: '180deg' }],
+    backgroundColor: COLORS.playerClockBackground,
+    marginHorizontal: width * 0.05,
+    marginVertical: width * 0.03,
+    borderRadius: 20, // Softer corners
+    padding: 20,
+    borderWidth: 2, // Default border width for inactive clocks
+    borderColor: COLORS.borderColor, // Default border color for inactive clocks
+    shadowColor: COLORS.shadowColor,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 4,
   },
   activeClock: {
-    backgroundColor: '#e6f2ff',
-  },
-  activeIndicator: {
-    position: 'absolute',
-    left: 0,
-    width: 8,
-    height: height / 2,
-    backgroundColor: '#2196F3',
-    zIndex: 10,
+    backgroundColor: COLORS.playerClockActiveBackground, // Subtle background change
+    borderColor: COLORS.activeIndicatorColor, // Use the main green for active border
+    borderWidth: 4, // Thicker border for active clock
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
   },
   playerInfoContainer: {
     alignItems: 'center',
   },
+  playerInfoContainerRotated: {
+    alignItems: 'center',
+    transform: [{ rotate: '180deg' }],
+  },
+  // activeIndicator: { ... } // No longer needed
   timeText: {
-    fontSize: 72,
+    fontSize: width * 0.18, // Maintained original larger size
     fontWeight: 'bold',
-    color: '#333',
+    color: COLORS.textPrimary, // Using reverted color
+    marginBottom: 3,
   },
   playerLabel: {
-    fontSize: 18,
+    fontSize: width * 0.05, // Adjusted for balance
     fontWeight: '600',
-    color: '#555',
+    color: COLORS.textSecondary, // Using reverted color
+    marginTop: 5,
   },
   moveCountText: {
-    fontSize: 14,
+    fontSize: width * 0.04,
+    color: COLORS.textSecondary, // Using reverted color
     marginTop: 5,
-    color: '#777',
   },
-  controls: {
-    height: 60,
+  specialStatusTextPlayer1: {
+    // Example style, customize as needed
+    fontSize: width * 0.035,
+    color: COLORS.specialStatusTextPlayer1,
+    fontWeight: '500',
+    marginTop: 6,
+  },
+  specialStatusTextPlayer2: {
+    // Example style, customize as needed
+    fontSize: width * 0.035,
+    color: COLORS.specialStatusTextPlayer2,
+    fontWeight: '500',
+    marginTop: 6,
+  },
+  controlsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: '#333',
+    backgroundColor: COLORS.controlsBackground, // Reverted color
+    paddingVertical: 12, // Slightly reduced padding
+    paddingHorizontal: 8,
+    shadowColor: COLORS.shadowColor,
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 7,
   },
   controlButton: {
-    padding: 10,
-    backgroundColor: '#555',
-    borderRadius: 4,
+    flex: 1,
+    marginHorizontal: width * 0.012, // Slightly reduced margin
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    borderRadius: 15, // Standardized button radius
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 55, // Good touch target
+    shadowColor: COLORS.shadowColor,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 4,
   },
-  controlText: {
-    color: '#fff',
-    fontSize: 16,
+  pausePlayButton: {
+    backgroundColor: COLORS.primaryAction, // Reverted: Pause/Play is Green
   },
-  statusContainer: {
-    marginTop: 10,
-    padding: 5,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    borderRadius: 5,
+  pausePlayButtonContent: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  statusText: {
-    fontSize: 14,
-    color: '#333',
+  pausePlayIcon: {
+    color: COLORS.controlButtonText,
+    fontSize: width * 0.055, // Slightly larger icon
+    fontWeight: 'bold',
+    marginBottom: 1,
+  },
+  resetButton: {
+    backgroundColor: COLORS.accentOrange, // Reverted: Reset is Orange
+  },
+  changeTimerButton: {
+    backgroundColor: COLORS.accentPurple, // Reverted: Change Timer is Purple
+  },
+  controlButtonText: {
+    color: COLORS.controlButtonText,
+    fontSize: width * 0.032, // Slightly smaller for icon accommodation
+    fontWeight: '600', // Consistent weight
+    textAlign: 'center',
+    marginTop: 2, // Space if icon is present
   },
 });
 
