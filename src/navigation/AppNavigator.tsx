@@ -30,7 +30,7 @@ export default function AppNavigator() {
         <Stack.Screen
           name="TimerSelection"
           component={TimerSelectionScreen}
-          options={{ title: 'Seleção de relógio' }}
+          options={{ title: 'Selecione o tipo de relógio' }}
         />
         <Stack.Screen
           name="Game"

@@ -1,15 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Animated,
   LayoutAnimation,
   Platform,
   UIManager,
   InteractionManager,
+  SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -25,6 +26,18 @@ if (Platform.OS === 'android') {
   }
 }
 
+// --- DESIGN SYSTEM COLORS (for consistency) ---
+const COLORS = {
+  background: '#f4f4f0',
+  card: '#ffffff',
+  textPrimary: '#333333',
+  textSecondary: '#666666',
+  primaryAction: '#4CAF50', // Green from Logo
+  primaryActionDisabled: '#a5d6a7', // Lighter Green
+  accent: '#8A2BE2', // Purple from Logo
+};
+// ---------------------------------------------
+
 const TimerSelectionScreen = () => {
   const navigation = useNavigation();
   const strategies = TimerStrategyFactory.getAllStrategies();
@@ -37,9 +50,7 @@ const TimerSelectionScreen = () => {
   const itemMeasurements = useRef({});
 
   const handleStrategySelect = (type: TimerType) => {
-    // Configure animation
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-
     // If selecting the same strategy, toggle it off
     if (selectedStrategy === type) {
       setSelectedStrategy(null);
@@ -49,18 +60,13 @@ const TimerSelectionScreen = () => {
 
     const strategy = TimerStrategyFactory.createStrategy(type);
     setSelectedStrategy(type);
-
-    // Initialize config with default values
     const initialConfig = {};
     strategy.getConfigParams().forEach(param => {
       initialConfig[param.name] = param.defaultValue;
     });
     setConfig(initialConfig);
-    setIsConfigValid(true); // Default values are valid
-
-    // Wait for animations to complete before scrolling
+    setIsConfigValid(true);
     InteractionManager.runAfterInteractions(() => {
-      // Use a setTimeout to ensure the expanded component has been fully rendered
       setTimeout(() => {
         if (scrollViewRef.current && itemMeasurements.current[type]) {
           scrollViewRef.current.scrollTo({
@@ -68,7 +74,7 @@ const TimerSelectionScreen = () => {
             animated: true,
           });
         }
-      }, 300);
+      }, 200);
     });
   };
 
@@ -85,7 +91,6 @@ const TimerSelectionScreen = () => {
   };
 
   const handleStartGame = () => {
-    // Convert any empty string values to defaults before starting
     const finalConfig = { ...config };
     if (selectedStrategy) {
       const strategy = TimerStrategyFactory.createStrategy(selectedStrategy);
@@ -98,7 +103,6 @@ const TimerSelectionScreen = () => {
         }
       });
     }
-
     navigation.navigate('Game', {
       strategyType: selectedStrategy,
       config: finalConfig,
@@ -111,14 +115,17 @@ const TimerSelectionScreen = () => {
     return (
       <View
         key={strategy.type}
-        style={styles.strategyItemContainer}
+        style={[
+          styles.strategyItemContainer,
+          isSelected && styles.selectedStrategy,
+        ]}
         onLayout={event => {
           const { y } = event.nativeEvent.layout;
           handleItemLayout(strategy.type, y);
         }}
       >
         <TouchableOpacity
-          style={[styles.strategyItem, isSelected && styles.selectedStrategy]}
+          style={styles.strategyItemTouchable}
           onPress={() => handleStrategySelect(strategy.type)}
         >
           <Text style={styles.strategyName}>{strategy.name}</Text>
@@ -126,14 +133,13 @@ const TimerSelectionScreen = () => {
         </TouchableOpacity>
 
         {isSelected && (
-          <Animated.View style={styles.configContainer}>
+          <View style={styles.configContainer}>
             <TimerConfigForm
               strategy={TimerStrategyFactory.createStrategy(strategy.type)}
               config={config}
               onChange={handleConfigChange}
               onValidationChange={handleConfigValidation}
             />
-
             <TouchableOpacity
               style={[
                 styles.startButton,
@@ -144,90 +150,95 @@ const TimerSelectionScreen = () => {
             >
               <Text style={styles.startButtonText}>Começar</Text>
             </TouchableOpacity>
-          </Animated.View>
+          </View>
         )}
       </View>
     );
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Selecione o tipo de timer</Text>
-
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       <ScrollView
         ref={scrollViewRef}
-        style={styles.strategyList}
-        showsVerticalScrollIndicator={true}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={false}
       >
         {strategies.map(renderStrategyItem)}
-
-        <View style={{ height: 100 }} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    backgroundColor: COLORS.background,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  strategyList: {
+  scrollView: {
     flex: 1,
+  },
+  scrollViewContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
   strategyItemContainer: {
     marginBottom: 16,
-    borderRadius: 8,
-    overflow: 'hidden',
-    backgroundColor: '#fff',
-    elevation: 2,
+    borderRadius: 12,
+    backgroundColor: COLORS.card,
+    elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
-  },
-  strategyItem: {
-    padding: 16,
-    borderRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
   selectedStrategy: {
-    backgroundColor: '#e6f0ff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#cde0ff',
+    borderColor: COLORS.primaryAction,
+  },
+  strategyItemTouchable: {
+    padding: 20,
+    borderRadius: 12,
   },
   strategyName: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 4,
+    color: COLORS.textPrimary,
+    marginBottom: 6,
   },
   strategyDesc: {
     fontSize: 14,
-    color: '#666',
+    color: COLORS.textSecondary,
+    lineHeight: 20,
   },
   configContainer: {
-    padding: 16,
-    backgroundColor: '#f8f9fa',
-  },
-  configTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    color: '#444',
+    padding: 20,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
   },
   startButton: {
-    backgroundColor: '#2196F3',
-    padding: 15,
-    borderRadius: 5,
+    backgroundColor: COLORS.primaryAction,
+    padding: 16,
+    borderRadius: 8,
     alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   startButtonDisabled: {
-    backgroundColor: '#a0cfff', // lighter blue
-    opacity: 0.7,
+    backgroundColor: COLORS.primaryActionDisabled,
+    opacity: 0.8,
   },
   startButtonText: {
     color: 'white',
