@@ -8,9 +8,8 @@ import {
   Dimensions,
   SafeAreaView,
   StatusBar,
-  Platform,
 } from 'react-native';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'; // https://withfra.me/react-native-vector-icons/directory
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { GameController } from '../controllers/GameController';
 import { formatTime } from '../utils/timeFormatter';
@@ -18,21 +17,22 @@ import { formatTime } from '../utils/timeFormatter';
 const { height, width } = Dimensions.get('window');
 
 const COLORS = {
-  background: '#f4f4f0', // Light beige background from LoboClock design
-  playerClockBackground: '#ffffff', // White for player clock areas
-  playerClockActiveBackground: '#e8f5e9', // Very light green for active player (subtle)
-  textPrimary: '#212121', // Darker text for better contrast
-  textSecondary: '#757575', // Lighter text for secondary info
-  primaryAction: '#4CAF50', // Main green from LoboClock logo (e.g., Start/Pause)
-  accentOrange: '#FFA500', // Orange as requested (e.g., Reset)
-  accentPurple: '#8A2BE2', // Purple from LoboClock logo (e.g., Change Timer)
-  controlsBackground: '#333333', // Dark background for controls
+  background: '#f4f4f0',
+  playerClockBackground: '#ffffff',
+  playerClockActiveBackground: '#e8f5e9',
+  textPrimary: '#212121',
+  textSecondary: '#757575',
+  primaryAction: '#4CAF50',
+  accentOrange: '#FFA500',
+  accentPurple: '#8A2BE2',
+  controlsBackground: '#333333',
   controlButtonText: '#ffffff',
-  activeIndicatorColor: '#4CAF50', // Green for the animated side indicator (now used for active clock border)
-  borderColor: '#B0BEC5', // Light grey for INACTIVE borders (NEW - or use a more subtle color from palette)
-  shadowColor: '#000000', // Black for shadows
-  specialStatusTextPlayer1: '#FFA500', // Example: Orange for player 1 special status
-  specialStatusTextPlayer2: '#8A2BE2', // Example: Purple for player 2 special status
+  activeIndicatorColor: '#4CAF50',
+  borderColor: '#B0BEC5',
+  shadowColor: '#000000',
+  pausedPromptBackground: 'rgba(0, 0, 0, 0.35)',
+  pausedPromptText: '#FFFFFF',
+  startPromptPlayer2Bg: `${'#FFA500'}B3`,
 };
 
 const GameScreen = () => {
@@ -78,21 +78,27 @@ const GameScreen = () => {
     return () => gameController.pause();
   }, []);
 
-  const handlePlayerPress = (player: number) => {
+  const handlePlayerPress = (playerTapped: number) => {
     if (!gameStarted) {
-      gameController.start();
-      setIsPaused(false);
-      setGameStarted(true);
+      // Only Player 2 (index 1) can initiate the game.
+      if (playerTapped === 1) {
+        gameController.start();
+        setIsPaused(false);
+        setGameStarted(true);
+      }
       return;
     }
 
     if (isPaused) {
-      gameController.start();
-      setIsPaused(false);
+      // If paused, the *opposing* player needs to tap to start/resume the current player's turn.
+      if (playerTapped !== currentPlayer) {
+        gameController.start();
+        setIsPaused(false);
+      }
       return;
     }
 
-    if (player === currentPlayer) {
+    if (playerTapped === currentPlayer) {
       gameController.switchPlayer();
       setCurrentPlayer(1 - currentPlayer);
     }
@@ -133,21 +139,22 @@ const GameScreen = () => {
   const getTimeTextStyle = (playerIndex: number) => ({
     ...styles.timeText,
     color:
-      gameStarted && !isPaused && currentPlayer === playerIndex
-        ? COLORS.textPrimary
-        : COLORS.textSecondary,
+      isPaused && gameStarted
+        ? COLORS.textSecondary
+        : gameStarted && !isPaused && currentPlayer === playerIndex
+          ? COLORS.textPrimary
+          : COLORS.textSecondary,
   });
 
   const getPlayerLabelStyle = (playerIndex: number) => ({
     ...styles.playerLabel,
     color:
-      gameStarted && !isPaused && currentPlayer === playerIndex
-        ? COLORS.textPrimary
-        : COLORS.textSecondary,
-    fontWeight:
-      gameStarted && !isPaused && currentPlayer === playerIndex
-        ? 'bold'
-        : '600',
+      isPaused && gameStarted
+        ? COLORS.textSecondary
+        : gameStarted && !isPaused && currentPlayer === playerIndex
+          ? COLORS.textPrimary
+          : COLORS.textSecondary,
+    fontWeight: gameStarted && currentPlayer === playerIndex ? 'bold' : '600',
   });
 
   return (
@@ -158,14 +165,40 @@ const GameScreen = () => {
         <TouchableOpacity
           style={[
             styles.playerClock,
-            currentPlayer === 1 &&
-              !isPaused &&
-              gameStarted &&
-              styles.activeClock,
+            gameStarted && currentPlayer === 1 && styles.activeClock,
           ]}
           onPress={() => handlePlayerPress(1)}
           activeOpacity={0.85}
         >
+          {!gameStarted && (
+            <View style={styles.startPromptPlayer2Container}>
+              <MaterialCommunityIcons
+                name="gesture-tap"
+                size={width * 0.08}
+                color={COLORS.controlButtonText}
+              />
+              <Text style={styles.startPromptPlayer2Text}>
+                Toque para iniciar
+              </Text>
+            </View>
+          )}
+          {gameStarted && isPaused && currentPlayer === 0 && (
+            <View
+              style={[
+                styles.pausedPromptContainer,
+                styles.pausedPromptPlayer2Transform,
+              ]}
+            >
+              <MaterialCommunityIcons
+                name="gesture-tap"
+                size={width * 0.08}
+                color={COLORS.pausedPromptText}
+              />
+              <Text style={styles.pausedPromptText}>
+                Toque para vez do Jogador 1
+              </Text>
+            </View>
+          )}
           <View style={styles.playerInfoContainerRotated}>
             <Text style={getTimeTextStyle(1)}>{formatTime(times[1])}</Text>
             <Text style={getPlayerLabelStyle(1)}>Jogador 2</Text>
@@ -220,14 +253,25 @@ const GameScreen = () => {
         <TouchableOpacity
           style={[
             styles.playerClock,
-            currentPlayer === 0 &&
-              !isPaused &&
-              gameStarted &&
-              styles.activeClock,
+            gameStarted && currentPlayer === 0 && styles.activeClock,
           ]}
           onPress={() => handlePlayerPress(0)}
           activeOpacity={0.85}
         >
+          {gameStarted &&
+            isPaused &&
+            currentPlayer === 1 && ( // P2's turn is paused, P1 needs to tap
+              <View style={styles.pausedPromptContainer}>
+                <MaterialCommunityIcons
+                  name="gesture-tap"
+                  size={width * 0.08}
+                  color={COLORS.pausedPromptText}
+                />
+                <Text style={styles.pausedPromptText}>
+                  Toque para vez do Jogador 2
+                </Text>
+              </View>
+            )}
           <View style={styles.playerInfoContainer}>
             <Text style={getTimeTextStyle(0)}>{formatTime(times[0])}</Text>
             <Text style={getPlayerLabelStyle(0)}>Jogador 1</Text>
@@ -256,20 +300,21 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.playerClockBackground,
     marginHorizontal: width * 0.05,
     marginVertical: width * 0.03,
-    borderRadius: 20, // Softer corners
+    borderRadius: 20,
     padding: 20,
-    borderWidth: 2, // Default border width for inactive clocks
-    borderColor: COLORS.borderColor, // Default border color for inactive clocks
+    borderWidth: 2,
+    borderColor: COLORS.borderColor,
     shadowColor: COLORS.shadowColor,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 4,
+    overflow: 'hidden',
   },
   activeClock: {
-    backgroundColor: COLORS.playerClockActiveBackground, // Subtle background change
-    borderColor: COLORS.activeIndicatorColor, // Use the main green for active border
-    borderWidth: 4, // Thicker border for active clock
+    backgroundColor: COLORS.playerClockActiveBackground,
+    borderColor: COLORS.activeIndicatorColor,
+    borderWidth: 4,
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 8,
@@ -281,44 +326,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     transform: [{ rotate: '180deg' }],
   },
-  // activeIndicator: { ... } // No longer needed
   timeText: {
-    fontSize: width * 0.18, // Maintained original larger size
+    fontSize: width * 0.18,
     fontWeight: 'bold',
-    color: COLORS.textPrimary, // Using reverted color
     marginBottom: 3,
   },
   playerLabel: {
-    fontSize: width * 0.05, // Adjusted for balance
-    fontWeight: '600',
-    color: COLORS.textSecondary, // Using reverted color
+    fontSize: width * 0.05,
     marginTop: 5,
   },
   moveCountText: {
     fontSize: width * 0.04,
-    color: COLORS.textSecondary, // Using reverted color
+    color: COLORS.textSecondary,
     marginTop: 5,
-  },
-  specialStatusTextPlayer1: {
-    // Example style, customize as needed
-    fontSize: width * 0.035,
-    color: COLORS.specialStatusTextPlayer1,
-    fontWeight: '500',
-    marginTop: 6,
-  },
-  specialStatusTextPlayer2: {
-    // Example style, customize as needed
-    fontSize: width * 0.035,
-    color: COLORS.specialStatusTextPlayer2,
-    fontWeight: '500',
-    marginTop: 6,
   },
   controlsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: COLORS.controlsBackground, // Reverted color
-    paddingVertical: 12, // Slightly reduced padding
+    backgroundColor: COLORS.controlsBackground,
+    paddingVertical: 12,
     paddingHorizontal: 8,
     shadowColor: COLORS.shadowColor,
     shadowOffset: { width: 0, height: -2 },
@@ -328,13 +355,13 @@ const styles = StyleSheet.create({
   },
   controlButton: {
     flex: 1,
-    marginHorizontal: width * 0.012, // Slightly reduced margin
+    marginHorizontal: width * 0.012,
     paddingVertical: 10,
     paddingHorizontal: 6,
-    borderRadius: 15, // Standardized button radius
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 55, // Good touch target
+    minHeight: 55,
     shadowColor: COLORS.shadowColor,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
@@ -342,31 +369,69 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   pausePlayButton: {
-    backgroundColor: COLORS.primaryAction, // Reverted: Pause/Play is Green
+    backgroundColor: COLORS.primaryAction,
   },
   pausePlayButtonContent: {
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  pausePlayIcon: {
-    color: COLORS.controlButtonText,
-    fontSize: width * 0.055, // Slightly larger icon
-    fontWeight: 'bold',
-    marginBottom: 1,
-  },
   resetButton: {
-    backgroundColor: COLORS.accentOrange, // Reverted: Reset is Orange
+    backgroundColor: COLORS.accentOrange,
   },
   changeTimerButton: {
-    backgroundColor: COLORS.accentPurple, // Reverted: Change Timer is Purple
+    backgroundColor: COLORS.accentPurple,
   },
   controlButtonText: {
     color: COLORS.controlButtonText,
-    fontSize: width * 0.032, // Slightly smaller for icon accommodation
-    fontWeight: '600', // Consistent weight
+    fontSize: width * 0.032,
+    fontWeight: '600',
     textAlign: 'center',
-    marginTop: 2, // Space if icon is present
+    marginTop: 2,
+  },
+  startPromptPlayer2Container: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: COLORS.startPromptPlayer2Bg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+    padding: 10,
+    zIndex: 10,
+    transform: [{ rotate: '180deg' }],
+  },
+  startPromptPlayer2Text: {
+    fontSize: width * 0.045,
+    fontWeight: 'bold',
+    color: COLORS.controlButtonText,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  pausedPromptContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: COLORS.pausedPromptBackground,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+    padding: 10,
+    zIndex: 11,
+  },
+  pausedPromptText: {
+    fontSize: width * 0.045,
+    fontWeight: 'bold',
+    color: COLORS.pausedPromptText,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  pausedPromptPlayer2Transform: {
+    transform: [{ rotate: '180deg' }],
   },
 });
 
