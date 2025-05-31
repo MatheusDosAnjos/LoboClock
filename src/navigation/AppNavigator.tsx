@@ -25,7 +25,7 @@ export default function AppNavigator() {
         <Stack.Screen
           name="MainMenu"
           component={MainMenuScreen}
-          options={{ title: 'Relógio de jogo' }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="TimerSelection"
