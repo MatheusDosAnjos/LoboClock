@@ -89,6 +89,15 @@ export const TimerConfigForm = ({
 
   const shouldShowParam = (param: any) => {
     if (!param.condition) return true;
+
+    if (param.name.startsWith('ot') && config['overtimeMode'] === 'custom') {
+      const match = param.name.match(/^ot(\d+)/);
+      if (match) {
+        const idx = parseInt(match[1], 10);
+        if (config['numOvertimes'] && idx > config['numOvertimes'])
+          return false;
+      }
+    }
     return config[param.condition.param] === param.condition.value;
   };
 

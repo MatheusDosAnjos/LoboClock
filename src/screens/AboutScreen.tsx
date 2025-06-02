@@ -82,7 +82,7 @@ const AboutScreen = () => {
           {'\n'}
           2. Configure as definições de tempo conforme as opções pré definidas.
           {'\n'}
-          3. O jogador 2 é responsável por iniciar a contagem do tempo.
+          3. O jogador 2 é responsável por iniciar a partida.
           {'\n'}
           4. Quando um jogador ativo completa seu movimento, ele toca em seu
           lado do relógio, passando a vez para o oponente.
