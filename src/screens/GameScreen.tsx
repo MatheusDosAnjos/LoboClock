@@ -201,8 +201,10 @@ const GameScreen = () => {
           )}
           <View style={styles.playerInfoContainerRotated}>
             <Text style={getTimeTextStyle(1)}>{formatTime(times[1])}</Text>
-            <Text style={getPlayerLabelStyle(1)}>Jogador 2</Text>
-            <Text style={styles.moveCountText}>Jogadas: {moveCounts[1]}</Text>
+            <View style={styles.playerDetails}>
+              <Text style={getPlayerLabelStyle(1)}>Jogador 2</Text>
+              <Text style={styles.moveCountText}>Jogadas: {moveCounts[1]}</Text>
+            </View>
             {renderSpecialStatus(1)}
           </View>
         </TouchableOpacity>
@@ -221,21 +223,14 @@ const GameScreen = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[
-              styles.controlButton,
-              styles.pausePlayButton,
-              styles.pausePlayButtonContent,
-            ]}
+            style={[styles.controlButton, styles.pausePlayButton]}
             onPress={handlePauseToggle}
           >
             <MaterialCommunityIcons
               name={isPaused ? 'play' : 'pause'}
-              size={width * 0.08}
+              size={width * 0.09}
               color={COLORS.controlButtonText}
             />
-            <Text style={styles.controlButtonText}>
-              {isPaused ? (gameStarted ? 'Continuar' : 'Iniciar') : 'Pausar'}
-            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.controlButton, styles.changeTimerButton]}
@@ -274,8 +269,10 @@ const GameScreen = () => {
             )}
           <View style={styles.playerInfoContainer}>
             <Text style={getTimeTextStyle(0)}>{formatTime(times[0])}</Text>
-            <Text style={getPlayerLabelStyle(0)}>Jogador 1</Text>
-            <Text style={styles.moveCountText}>Jogadas: {moveCounts[0]}</Text>
+            <View style={styles.playerDetails}>
+              <Text style={getPlayerLabelStyle(0)}>Jogador 1</Text>
+              <Text style={styles.moveCountText}>Jogadas: {moveCounts[0]}</Text>
+            </View>
             {renderSpecialStatus(0)}
           </View>
         </TouchableOpacity>
@@ -321,31 +318,44 @@ const styles = StyleSheet.create({
   },
   playerInfoContainer: {
     alignItems: 'center',
+    position: 'relative',
+    flex: 1,
+    justifyContent: 'center',
   },
   playerInfoContainerRotated: {
     alignItems: 'center',
     transform: [{ rotate: '180deg' }],
+    position: 'relative',
+    flex: 1,
+    justifyContent: 'center',
   },
   timeText: {
     fontSize: width * 0.18,
     fontWeight: 'bold',
-    marginBottom: 3,
+  },
+  playerDetails: {
+    position: 'absolute',
+    bottom: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    alignItems: 'center',
   },
   playerLabel: {
     fontSize: width * 0.05,
-    marginTop: 5,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
   },
   moveCountText: {
     fontSize: width * 0.04,
     color: COLORS.textSecondary,
-    marginTop: 5,
   },
   controlsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     backgroundColor: COLORS.controlsBackground,
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 8,
     shadowColor: COLORS.shadowColor,
     shadowOffset: { width: 0, height: -2 },
@@ -356,12 +366,10 @@ const styles = StyleSheet.create({
   controlButton: {
     flex: 1,
     marginHorizontal: width * 0.012,
-    paddingVertical: 10,
-    paddingHorizontal: 6,
     borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 55,
+    minHeight: height * 0.06,
     shadowColor: COLORS.shadowColor,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
@@ -370,11 +378,6 @@ const styles = StyleSheet.create({
   },
   pausePlayButton: {
     backgroundColor: COLORS.primaryAction,
-  },
-  pausePlayButtonContent: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   resetButton: {
     backgroundColor: COLORS.accentOrange,
