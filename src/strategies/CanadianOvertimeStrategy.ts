@@ -85,11 +85,19 @@ export class CanadianOvertimeStrategy extends TimerStrategy {
     this.justEnteredOvertime[previousPlayer] = false;
   }
 
-  isGameOver(): boolean {
-    // Game is over if any player has entered overtime and their overtime time has run out
-    return this.inOvertime.some(
-      (inOT, playerId) => inOT && this.overtimeTimes[playerId] <= 0,
-    );
+  isGameOver(): number | null {
+    const isPlayerOutOfTime = (playerIndex: 0 | 1): boolean => {
+      return (
+        this.times[playerIndex] <= 0 &&
+        this.inOvertime[playerIndex] &&
+        this.overtimeTimes[playerIndex] <= 0
+      );
+    };
+
+    if (isPlayerOutOfTime(0)) return 1;
+    if (isPlayerOutOfTime(1)) return 0;
+
+    return null;
   }
 
   reset(): void {

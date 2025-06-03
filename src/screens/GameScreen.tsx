@@ -63,10 +63,10 @@ const GameScreen = () => {
     gameController.onTimeUpdate(newTimes => setTimes(newTimes));
     gameController.onMoveCountUpdate(newMoves => setMoveCounts(newMoves));
 
-    gameController.onGameOver(() => {
-      const winner = times[0] <= 0 ? 'Jogador 2' : 'Jogador 1';
+    gameController.onGameOver((winner: number) => {
+      const winnerText = winner === 0 ? 'Jogador 1' : 'Jogador 2';
 
-      Alert.alert('Fim de jogo', `Vencedor: ${winner}`, [
+      Alert.alert('Fim de jogo', `Vencedor: ${winnerText}`, [
         { text: 'Novo jogo', onPress: handleReset },
         {
           text: 'Menu principal',

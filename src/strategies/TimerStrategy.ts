@@ -4,7 +4,7 @@ export interface ITimerStrategy {
   getRemainingTime(playerId: number): number;
   setRemainingTime(playerId: number, timeMs: number): void;
   switchPlayer?(): void;
-  isGameOver(): boolean;
+  isGameOver(): number | null;
   reset(): void;
   getConfigParams(): TimerConfigParam[];
   renderStatus?(playerId: number): React.ReactNode;
@@ -34,8 +34,10 @@ export abstract class TimerStrategy implements ITimerStrategy {
 
   switchPlayer(): void {}
 
-  isGameOver(): boolean {
-    return this.times.some(time => time <= 0);
+  isGameOver(): number | null {
+    if (this.times[0] <= 0) return 1;
+    if (this.times[1] <= 0) return 0;
+    return null;
   }
 
   reset(): void {

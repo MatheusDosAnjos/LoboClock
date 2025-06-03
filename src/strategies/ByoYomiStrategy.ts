@@ -84,12 +84,19 @@ export class ByoYomiStrategy extends TimerStrategy {
     this.lastSwitchInByoYomi[previousPlayer] = false;
   }
 
-  isGameOver(): boolean {
-    // Game is over if either player has used all main time and all byo-yomi periods
-    return (
-      (this.inByoYomi[0] && this.periodsRemaining[0] <= 0) ||
-      (this.inByoYomi[1] && this.periodsRemaining[1] <= 0)
-    );
+  isGameOver(): number | null {
+    const isPlayerOutOfTime = (playerIndex: 0 | 1): boolean => {
+      return (
+        this.times[playerIndex] <= 0 &&
+        this.inByoYomi[playerIndex] &&
+        this.periodsRemaining[playerIndex] <= 0
+      );
+    };
+
+    if (isPlayerOutOfTime(0)) return 1;
+    if (isPlayerOutOfTime(1)) return 0;
+
+    return null;
   }
 
   reset(): void {

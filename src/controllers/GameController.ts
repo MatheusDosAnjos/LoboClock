@@ -10,7 +10,7 @@ export class GameController {
   private activePlayer: number = 0;
   private startTimestamp: number = 0;
   private animationFrameId: number | null = null;
-  private gameOverCallback: () => void = () => {};
+  private gameOverCallback: (winner: number) => void = () => {};
   private timeUpdateCallback: (times: number[]) => void = () => {};
   private moveCountCallback: (moves: number[]) => void = () => {};
   private moveCount: number[] = [0, 0]; // Track moves for each player
@@ -74,10 +74,10 @@ export class GameController {
         this.updatePlayerTime(false); // Update time without storing it
         this.notifyTimeUpdate();
 
-        // Check for game over
-        if (this.strategy.isGameOver()) {
+        const winner = this.strategy.isGameOver();
+        if (winner !== null) {
           this.pause();
-          this.gameOverCallback();
+          this.gameOverCallback(winner);
           return;
         }
 
@@ -142,7 +142,7 @@ export class GameController {
     this.moveCountCallback = callback;
   }
 
-  onGameOver(callback: () => void): void {
+  onGameOver(callback: (winner: number) => void): void {
     this.gameOverCallback = callback;
   }
 }

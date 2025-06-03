@@ -228,7 +228,7 @@ export class CustomStrategy extends TimerStrategy {
     this.turnStartMainTime = this.times[np]; // Track main time at start of new turn
   }
 
-  isGameOver(): boolean {
+  isGameOver(): number | null {
     const isPlayerOutOfTime = (playerId: number): boolean => {
       const noMainTime = this.times[playerId] <= 0;
       const noExtraTime = this.extraTimes[playerId] <= 0;
@@ -245,7 +245,10 @@ export class CustomStrategy extends TimerStrategy {
       );
     };
 
-    return isPlayerOutOfTime(0) || isPlayerOutOfTime(1);
+    if (isPlayerOutOfTime(0)) return 1;
+    if (isPlayerOutOfTime(1)) return 0;
+
+    return null;
   }
 
   reset(): void {
