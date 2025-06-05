@@ -9,7 +9,6 @@ import {
   Alert,
   Image,
 } from 'react-native';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const COLORS = {
   background: '#f4f4f0',
@@ -56,7 +55,7 @@ const AboutScreen = () => {
           <TouchableOpacity
             onPress={() => openUrl('https://www.inf.ufrgs.br/lobogames/')}
           >
-            <Text style={styles.linkText}>LoboGames</Text>
+            <Text style={styles.linkText}>LoboGames.</Text>
           </TouchableOpacity>
         </View>
       </View>

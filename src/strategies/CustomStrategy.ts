@@ -16,7 +16,7 @@ type OvertimeConfig = {
 export class CustomStrategy extends TimerStrategy {
   static readonly name = 'Personalizado';
   static readonly description =
-    'Cronômetro personalizável com tempo principal, incremento, tempo extra por jogada e múltiplos overtimes opcionais, cada um com sua própria configuração.';
+    'Cronômetro personalizável com tempo principal, incremento, tempo extra por jogada e múltiplos overtimes opcionais, cada um com sua própria configuração';
 
   incrementMs: number;
   baseExtraMs: number;

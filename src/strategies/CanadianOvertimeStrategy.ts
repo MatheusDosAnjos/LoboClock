@@ -6,7 +6,7 @@ import { minutesToMs } from '../utils/timeFormatter';
 export class CanadianOvertimeStrategy extends TimerStrategy {
   static readonly name = 'Canadian Overtime';
   static readonly description =
-    'Após o fim do tempo principal, o jogador tem um tempo fixo para cada jogada durante o período extra.';
+    'Após o fim do tempo principal, o jogador tem um tempo fixo para cada jogada durante o período extra';
 
   private overtimeTimes: number[] = [0, 0];
   private inOvertime: boolean[] = [false, false];
