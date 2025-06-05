@@ -116,16 +116,52 @@ const GameScreen = () => {
   };
 
   const handleReset = () => {
-    gameController.reset();
-    setTimes([
-      gameController.getCurrentStrategy().getRemainingTime(0),
-      gameController.getCurrentStrategy().getRemainingTime(1),
-    ]);
-    setMoveCounts(gameController.getMoveCount());
+    if (!gameStarted) return;
 
-    setCurrentPlayer(0);
+    gameController.pause();
     setIsPaused(true);
-    setGameStarted(false);
+
+    Alert.alert(
+      'Reiniciar',
+      'Tem certeza que deseja reiniciar? O jogo atual será perdido.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Reiniciar',
+          style: 'destructive',
+          onPress: () => {
+            gameController.reset();
+            setTimes([
+              gameController.getCurrentStrategy().getRemainingTime(0),
+              gameController.getCurrentStrategy().getRemainingTime(1),
+            ]);
+            setMoveCounts(gameController.getMoveCount());
+
+            setCurrentPlayer(0);
+            setIsPaused(true);
+            setGameStarted(false);
+          },
+        },
+      ],
+    );
+  };
+
+  const handleChangeTimer = () => {
+    gameController.pause();
+    setIsPaused(true);
+
+    Alert.alert(
+      'Trocar relógio',
+      'Tem certeza que deseja mudar o tipo de relógio? O jogo atual será perdido.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Trocar relógio',
+          style: 'destructive',
+          onPress: () => navigation.navigate('TimerSelection' as never),
+        },
+      ],
+    );
   };
 
   const renderSpecialStatus = (player: number) => {
@@ -234,7 +270,7 @@ const GameScreen = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.controlButton, styles.changeTimerButton]}
-            onPress={() => navigation.navigate('TimerSelection' as never)}
+            onPress={handleChangeTimer}
           >
             <MaterialCommunityIcons
               name="clock-edit-outline"

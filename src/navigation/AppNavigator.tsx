@@ -6,14 +6,12 @@ import MainMenuScreen from '../screens/MainMenuScreen';
 import TimerSelectionScreen from '../screens/TimerSelectionScreen';
 import GameScreen from '../screens/GameScreen';
 import AboutScreen from '../screens/AboutScreen';
-import HelpScreen from '../screens/HelpScreen';
 
 export type RootStackParamList = {
   MainMenu: undefined;
   TimerSelection: undefined;
   Game: undefined;
   About: undefined;
-  Help: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -41,11 +39,6 @@ export default function AppNavigator() {
           name="About"
           component={AboutScreen}
           options={{ title: 'Sobre' }}
-        />
-        <Stack.Screen
-          name="Help"
-          component={HelpScreen}
-          options={{ title: 'Ajuda' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

@@ -19,7 +19,6 @@ type MainMenuNavigationProp = StackNavigationProp<
   'MainMenu'
 >;
 
-// Helper component for logo placeholders - now accepts a source object
 type LogoPlaceholderProps = {
   imageSource: number;
 };
@@ -59,7 +58,6 @@ const MainMenuScreen = () => {
             </Text>
           </View>
 
-          {/* Botões de Ação */}
           <View style={styles.buttonGroup}>
             <TouchableOpacity
               style={[styles.button, styles.playButton]}
@@ -75,7 +73,6 @@ const MainMenuScreen = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Rodapé Simples */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>
               &copy; {new Date().getFullYear()} LoboClock. Todos os direitos
