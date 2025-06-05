@@ -49,7 +49,7 @@ const MainMenuScreen = () => {
 
           <View style={styles.logoTitleContainer}>
             <Image
-              source={require('../../assets/icon-no-background.png')}
+              source={require('../../assets/icon-foreground.png')}
               style={styles.mainLogo}
               resizeMode="contain"
             />
