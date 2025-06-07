@@ -33,6 +33,7 @@ const COLORS = {
   pausedPromptBackground: 'rgba(0, 0, 0, 0.35)',
   pausedPromptText: '#FFFFFF',
   startPromptPlayer2Bg: `${'#FFA500'}B3`,
+  gameOverBackground: 'rgba(220, 53, 69, 0.9)',
 };
 
 const GameScreen = () => {
@@ -51,6 +52,8 @@ const GameScreen = () => {
   const [currentPlayer, setCurrentPlayer] = useState(0);
   const [isPaused, setIsPaused] = useState(true);
   const [gameStarted, setGameStarted] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+  const [winner, setWinner] = useState<number | null>(null);
 
   useEffect(() => {
     const initialTimes = [
@@ -63,22 +66,18 @@ const GameScreen = () => {
     gameController.onTimeUpdate(newTimes => setTimes(newTimes));
     gameController.onMoveCountUpdate(newMoves => setMoveCounts(newMoves));
 
-    gameController.onGameOver((winner: number) => {
-      const winnerText = winner === 0 ? 'Jogador 1' : 'Jogador 2';
-
-      Alert.alert('Fim de jogo', `Vencedor: ${winnerText}`, [
-        { text: 'Novo jogo', onPress: handleReset },
-        {
-          text: 'Menu principal',
-          onPress: () => navigation.navigate('MainMenu'),
-        },
-      ]);
+    gameController.onGameOver((winnerPlayer: number) => {
+      setGameOver(true);
+      setWinner(winnerPlayer);
+      setIsPaused(true);
     });
 
     return () => gameController.pause();
   }, []);
 
   const handlePlayerPress = (playerTapped: number) => {
+    if (gameOver) return;
+
     if (!gameStarted) {
       // Only Player 2 (index 1) can initiate the game.
       if (playerTapped === 1) {
@@ -105,6 +104,8 @@ const GameScreen = () => {
   };
 
   const handlePauseToggle = () => {
+    if (gameOver) return;
+
     if (isPaused) {
       gameController.start();
       setIsPaused(false);
@@ -140,6 +141,8 @@ const GameScreen = () => {
             setCurrentPlayer(0);
             setIsPaused(true);
             setGameStarted(false);
+            setGameOver(false);
+            setWinner(null);
           },
         },
       ],
@@ -218,7 +221,7 @@ const GameScreen = () => {
               </Text>
             </View>
           )}
-          {gameStarted && isPaused && currentPlayer === 0 && (
+          {gameStarted && isPaused && currentPlayer === 0 && !gameOver && (
             <View
               style={[
                 styles.pausedPromptContainer,
@@ -233,6 +236,21 @@ const GameScreen = () => {
               <Text style={styles.pausedPromptText}>
                 Toque para vez do Jogador 1
               </Text>
+            </View>
+          )}
+          {gameOver && winner !== 1 && (
+            <View
+              style={[
+                styles.gameOverContainer,
+                styles.pausedPromptPlayer2Transform,
+              ]}
+            >
+              <MaterialCommunityIcons
+                name="timer-off-outline"
+                size={width * 0.1}
+                color={COLORS.pausedPromptText}
+              />
+              <Text style={styles.gameOverText}>Seu tempo acabou!</Text>
             </View>
           )}
           <View style={styles.playerInfoContainerRotated}>
@@ -289,20 +307,28 @@ const GameScreen = () => {
           onPress={() => handlePlayerPress(0)}
           activeOpacity={0.85}
         >
-          {gameStarted &&
-            isPaused &&
-            currentPlayer === 1 && ( // P2's turn is paused, P1 needs to tap
-              <View style={styles.pausedPromptContainer}>
-                <MaterialCommunityIcons
-                  name="gesture-tap"
-                  size={width * 0.08}
-                  color={COLORS.pausedPromptText}
-                />
-                <Text style={styles.pausedPromptText}>
-                  Toque para vez do Jogador 2
-                </Text>
-              </View>
-            )}
+          {gameStarted && isPaused && currentPlayer === 1 && !gameOver && (
+            <View style={styles.pausedPromptContainer}>
+              <MaterialCommunityIcons
+                name="gesture-tap"
+                size={width * 0.08}
+                color={COLORS.pausedPromptText}
+              />
+              <Text style={styles.pausedPromptText}>
+                Toque para vez do Jogador 2
+              </Text>
+            </View>
+          )}
+          {gameOver && winner !== 0 && (
+            <View style={styles.gameOverContainer}>
+              <MaterialCommunityIcons
+                name="timer-off-outline"
+                size={width * 0.1}
+                color={COLORS.pausedPromptText}
+              />
+              <Text style={styles.gameOverText}>Seu tempo acabou!</Text>
+            </View>
+          )}
           <View style={styles.playerInfoContainer}>
             <Text style={getTimeTextStyle(0)}>{formatTime(times[0])}</Text>
             <View style={styles.playerDetails}>
@@ -471,6 +497,27 @@ const styles = StyleSheet.create({
   },
   pausedPromptPlayer2Transform: {
     transform: [{ rotate: '180deg' }],
+  },
+  gameOverContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: COLORS.gameOverBackground,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+    padding: 20,
+    zIndex: 12,
+  },
+  gameOverText: {
+    fontSize: width * 0.06,
+    fontWeight: 'bold',
+    color: COLORS.pausedPromptText,
+    marginTop: 12,
+    marginBottom: 20,
+    textAlign: 'center',
   },
 });
 
