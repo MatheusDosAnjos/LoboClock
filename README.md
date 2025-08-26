@@ -1,9 +1,7 @@
 # LoboClock 🐺⏰
-
-A modern, feature-rich chess clock application built with React Native and TypeScript. LoboClock provides multiple timing strategies for chess games, tournaments, and other turn-based activities. It was developed as a part of the LoBoGames project, which objective is to promote the interest in Logical Board Games, encouraging and cultivating logical reasoning among students.
+A modern, feature-rich chess clock application built with React Native and TypeScript for iOS, Android, and Web. LoboClock provides multiple timing strategies for chess games, tournaments, and other turn-based activities. It was developed as a part of the LoBoGames project, which objective is to promote the interest in Logical Board Games, encouraging and cultivating logical reasoning among students.
 
 ## 📸 Screenshots
-
 <div align="center">
   <img src="assets/screenshots/home_screen.jpeg" width="200" />
   <img src="assets/screenshots/selection_screen.jpeg" width="200" />
@@ -12,36 +10,22 @@ A modern, feature-rich chess clock application built with React Native and TypeS
   <img src="assets/screenshots/game_screen_2.jpeg" width="200" />
 </div>
 
-## ✨ Features
-
-- 🕐 **Multiple Timer Strategies** - Support for 8 different timing systems:
-  - **Classical** - Simple countdown timer
-  - **Increment** - Adds time after each move
-  - **Bronstein Delay** - Delay before time starts counting
-  - **Hourglass** - Time flows between players
-  - **Byo-Yomi** - Japanese overtime system
-  - **Canadian Overtime** - Group move overtime
-  - **Tournament** - Multi-phase professional timing
-  - **Custom** - Fully configurable timing rules
-
-- 📱 **Cross-Platform** - Built with React Native for iOS, Android, and Web
-- ⚡ **High-Precision Timing** - Accurate millisecond-level time tracking
-- 🎨 **Intuitive Interface** - Clean, responsive design optimized for gameplay
-- 🔧 **Configurable Settings** - Extensive customization for each timer type
-- 📊 **Move Tracking** - Automatic move counting and phase transitions
-- 🏆 **Tournament Ready** - Professional features for competitive play
-- 🌟 **Modern Architecture** - TypeScript-powered with clean separation of concerns
-
 ## 📱 Usage
-
 1. **Select Timer Type**: Choose from 8 different timing strategies
+   - **Classical** - Simple countdown timer
+   - **Increment** - Adds time after each move
+   - **Bronstein Delay** - Delay before time starts counting
+   - **Hourglass** - Time flows between players
+   - **Byo-Yomi** - Japanese overtime system
+   - **Canadian Overtime** - Group move overtime
+   - **Tournament** - Multi-phase professional timing
+   - **Custom** - Fully configurable timing rules
 2. **Configure Settings**: Adjust time limits, increments, and special rules
 3. **Start Game**: Player 2 taps their side to begin
 4. **Switch Turns**: Active player taps their side to end their turn
 5. **Pause/Resume**: Opponent taps to resume after a pause
 
 ## 🛠️ Technologies Used
-
 - **React Native** - Cross-platform mobile development framework
 - **TypeScript** - Type-safe JavaScript for reliable code
 - **Expo** - Development platform and build system
@@ -52,7 +36,6 @@ A modern, feature-rich chess clock application built with React Native and TypeS
 ## 🚀 Getting Started
 
 ### Prerequisites
-
 - [Node.js](https://nodejs.org/) (version 14 or higher)
 - [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
 - [Expo CLI](https://docs.expo.dev/get-started/installation/) for development
@@ -60,7 +43,6 @@ A modern, feature-rich chess clock application built with React Native and TypeS
 - For Android: Android Studio
 
 ### Installation
-
 1. Clone the repository:
 ```bash
 git clone https://github.com/MatheusDosAnjos/LoboClock.git
