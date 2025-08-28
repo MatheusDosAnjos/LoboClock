@@ -120,6 +120,6 @@ If you encounter any issues or have questions:
 - Check the documentation in the source code
 - Contact through GitHub profile
 
-**Author:** Matheus Adam dos Anjos
+**Author:** Matheus Adam dos Anjos  
 **License:** Open source project
 <!-- This project is open source and available under the [MIT License](LICENSE). -->
